@@ -49,9 +49,10 @@ function sortEventsForUser(
 }
 
 export default function Home() {
-  const { user, profile, loading, profileLoading, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent } = useAuth();
+  const { user, profile, loading, profileLoading, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent, createEvent } = useAuth();
   const [activeGenre, setActiveGenre] = useState<GenreFilter | "Saved">("All");
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const handleCheckInSubmit = async (comment: string) => {
     if (activeDialogEvent) {
@@ -72,21 +73,22 @@ export default function Home() {
   };
 
   const displayEvents = useMemo(() => {
-    let filtered = TOUR_EVENTS;
+    let filtered = events;
 
     if (activeGenre === "Saved") {
-      filtered = TOUR_EVENTS.filter((event) => savedEventIds.includes(event.id));
+      filtered = events.filter((event) => savedEventIds.includes(event.id));
     } else if (activeGenre !== "All") {
-      filtered = TOUR_EVENTS.filter((event) => event.genre === activeGenre);
+      filtered = events.filter((event) => event.genre === activeGenre);
     }
 
     return sortEventsForUser(filtered, profile?.favorite_genres, activeGenre as any);
-  }, [activeGenre, profile?.favorite_genres, savedEventIds]);
+  }, [activeGenre, profile?.favorite_genres, events, savedEventIds]);
 
   const isPersonalized =
     profile?.favorite_genres &&
     profile.favorite_genres.length > 0 &&
     activeGenre === "All";
+
 
   return (
     <div className="relative min-h-full overflow-hidden bg-black text-zinc-100">
@@ -136,18 +138,28 @@ export default function Home() {
             );
           })}
           {user && (
-            <button
-              type="button"
-              onClick={() => handleGenreChange("Saved")}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 ${
-                activeGenre === "Saved"
-                  ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/25"
-                  : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
-              }`}
-            >
-              <SavedIcon />
-              お気に入り ({savedEventIds.length})
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => handleGenreChange("Saved")}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 ${
+                  activeGenre === "Saved"
+                    ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/25"
+                    : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                }`}
+              >
+                <SavedIcon />
+                お気に入り ({savedEventIds.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(true)}
+                className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 bg-zinc-900/80 text-violet-300 ring-1 ring-violet-500/25 hover:bg-zinc-800 hover:text-violet-200"
+              >
+                <span>➕</span>
+                公演を新しく登録
+              </button>
+            </>
           )}
         </nav>
 
@@ -277,6 +289,149 @@ export default function Home() {
         isAttended={activeDialogEvent?.isAttended || false}
         artistName={activeDialogEvent?.artist || ""}
       />
+
+      <CreateEventDialog
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSubmit={async (data) => {
+          const res = await createEvent(data);
+          if (res.error) {
+            throw new Error(res.error);
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+function CreateEventDialog({
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: { artist: string; date: string; venue: string; city: string; genre: any }) => Promise<void>;
+}) {
+  const [artist, setArtist] = useState("");
+  const [date, setDate] = useState("");
+  const [venue, setVenue] = useState("");
+  const [city, setCity] = useState("");
+  const [genre, setGenre] = useState<any>("Rock");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!artist || !date || !venue || !city) {
+      setError("すべての項目を入力してください");
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+    try {
+      await onSubmit({ artist, date, venue, city, genre });
+      setArtist("");
+      setDate("");
+      setVenue("");
+      setCity("");
+      setGenre("Rock");
+      onClose();
+    } catch (err: any) {
+      setError(err.message || "エラーが発生しました");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md shrink-0 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-violet-500/10">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-white">新規公演の登録</h2>
+              <p className="mt-1 text-xs text-zinc-400">ライブ情報を登録して、みんなでシェアしよう</p>
+            </div>
+            <button type="button" onClick={onClose} className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300">
+              ✕
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">アーティスト名</label>
+              <input
+                type="text"
+                required
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="例: Coldplay"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">公演日</label>
+              <input
+                type="date"
+                required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">会場名</label>
+                <input
+                  type="text"
+                  required
+                  value={venue}
+                  onChange={(e) => setVenue(e.target.value)}
+                  placeholder="例: 東京ドーム"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-zinc-300">都市 (都道府県)</label>
+                <input
+                  type="text"
+                  required
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="例: 東京"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">ジャンル</label>
+              <select
+                value={genre}
+                onChange={(e) => setGenre(e.target.value as any)}
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-violet-500 focus:outline-none"
+              >
+                <option value="Rock">Rock</option>
+                <option value="Pop">Pop</option>
+                <option value="HipHop">HipHop</option>
+                <option value="EDM">EDM</option>
+              </select>
+            </div>
+
+            {error && <p className="text-xs text-rose-400">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
+            >
+              {submitting ? "登録中..." : "公演を登録する"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
@@ -401,3 +556,4 @@ function CheckIcon({ solid }: { solid: boolean }) {
     </svg>
   );
 }
+

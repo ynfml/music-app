@@ -12,12 +12,14 @@ import type { User } from "@supabase/supabase-js";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import type { Genre, Profile } from "@/lib/types";
 import { safeStartViewTransition } from "@/lib/transitions";
+import { type TourEvent } from "@/lib/events";
 
 type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
+  events: TourEvent[];
   savedEventIds: string[];
   attendedEventIds: string[];
   attendedComments: Record<string, string>;
@@ -29,8 +31,16 @@ type AuthContextValue = {
   toggleSaveEvent: (eventId: string) => Promise<{ error: string | null }>;
   toggleAttendEvent: (eventId: string, comment?: string) => Promise<{ error: string | null }>;
   toggleFollow: (targetUserId: string) => Promise<{ error: string | null }>;
+  createEvent: (eventData: {
+    artist: string;
+    date: string;
+    venue: string;
+    city: string;
+    genre: Genre;
+  }) => Promise<{ data: TourEvent | null; error: string | null }>;
   signOut: () => Promise<void>;
 };
+
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -53,6 +63,7 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [events, setEvents] = useState<TourEvent[]>([]);
   const [savedEventIds, setSavedEventIds] = useState<string[]>([]);
   const [attendedEventIds, setAttendedEventIds] = useState<string[]>([]);
   const [attendedComments, setAttendedComments] = useState<Record<string, string>>({});
@@ -61,7 +72,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
 
+  const fetchAllEvents = useCallback(async () => {
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("date", { ascending: true });
+
+    if (error) {
+      console.error("Failed to fetch events from DB:", error.message);
+      return [];
+    }
+    return data as TourEvent[];
+  }, []);
+
   const fetchSavedEvents = useCallback(async (userId: string) => {
+
     const supabase = createSupabaseClient();
     const { data, error } = await supabase
       .from("saved_events")
@@ -391,12 +417,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const createEvent = useCallback(
+    async (eventData: {
+      artist: string;
+      date: string;
+      venue: string;
+      city: string;
+      genre: Genre;
+    }) => {
+      if (!user) {
+        return { data: null, error: "ログインが必要です" };
+      }
+
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase
+        .from("events")
+        .insert({
+          artist: eventData.artist,
+          date: eventData.date,
+          venue: eventData.venue,
+          city: eventData.city,
+          genre: eventData.genre,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        return { data: null, error: error.message };
+      }
+
+      const newEvent = data as TourEvent;
+      safeStartViewTransition(() => {
+        setEvents((prev) => {
+          const next = [...prev, newEvent];
+          return next.sort((a, b) => a.date.localeCompare(b.date));
+        });
+      });
+
+      return { data: newEvent, error: null };
+    },
+    [user],
+  );
+
+  useEffect(() => {
+    fetchAllEvents().then((data) => {
+      safeStartViewTransition(() => {
+        setEvents(data);
+      });
+    });
+  }, [fetchAllEvents]);
+
   const value = useMemo(
     () => ({
       user,
       profile,
       loading,
       profileLoading,
+      events,
       savedEventIds,
       attendedEventIds,
       attendedComments,
@@ -408,6 +485,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toggleSaveEvent,
       toggleAttendEvent,
       toggleFollow,
+      createEvent,
       signOut,
     }),
     [
@@ -415,6 +493,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile,
       loading,
       profileLoading,
+      events,
       savedEventIds,
       attendedEventIds,
       attendedComments,
@@ -426,9 +505,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toggleSaveEvent,
       toggleAttendEvent,
       toggleFollow,
+      createEvent,
       signOut,
     ],
   );
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

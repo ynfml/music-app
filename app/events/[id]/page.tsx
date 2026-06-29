@@ -118,7 +118,7 @@ function formatDate(dateStr: string) {
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { user, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent } = useAuth();
+  const { user, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent } = useAuth();
   const [copied, setCopied] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -174,7 +174,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }, [id, attendedEventIds]);
 
   // 公演情報を探す
-  const event = TOUR_EVENTS.find((e) => e.id === id);
+  const event = events.find((e) => e.id === id);
 
   if (!event) {
     return (
@@ -407,12 +407,43 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </ul>
 
               <a
-                href={event.ticketUrl}
+                href="#"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98] mt-4"
               >
                 <span>🎫</span> チケット購入（プレイガイド）
               </a>
             </section>
+
+            {/* 💸 マネタイズ用：ライブ遠征アフィリエイト導線 */}
+            <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-4">
+              <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">✈️ ライブ遠征サポート</h2>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                ライブ会場への遠征準備はこちらから！遠征ホテルや交通手段をまとめて予約できます。
+              </p>
+              
+              <div className="space-y-2.5 pt-2">
+                {/* 楽天トラベル宿泊（会場付近の検索）アフィリエイト用URL */}
+                <a
+                  href={`https://search.rakuten.co.jp/search/mall/${encodeURIComponent(event.venue + ' ホテル')}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 text-zinc-100 ring-1 ring-zinc-800 px-4 py-3.5 text-sm font-semibold hover:bg-zinc-800 transition-all active:scale-[0.98]"
+                >
+                  <span>🏨</span> 会場近くのホテルを探す
+                </a>
+                
+                {/* 楽天トラベル高速バスアフィリエイト用URL */}
+                <a
+                  href="https://travel.rakuten.co.jp/bus/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 text-zinc-100 ring-1 ring-zinc-800 px-4 py-3.5 text-sm font-semibold hover:bg-zinc-800 transition-all active:scale-[0.98]"
+                >
+                  <span>🚌</span> 遠征用の高速バスを探す
+                </a>
+              </div>
+            </section>
+
           </div>
 
         </div>
