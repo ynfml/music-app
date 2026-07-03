@@ -12,6 +12,7 @@ const GENRE_STYLES: Record<Genre, string> = {
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
+  Festival: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
 };
 
 function formatDate(dateStr: string) {
