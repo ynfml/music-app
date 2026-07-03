@@ -32,10 +32,10 @@ type AuthContextValue = {
   toggleAttendEvent: (eventId: string, comment?: string) => Promise<{ error: string | null }>;
   toggleFollow: (targetUserId: string) => Promise<{ error: string | null }>;
   createEvent: (eventData: {
-    artist: string;
-    date: string;
-    venue: string;
-    city: string;
+    artist_name: string;
+    event_date: string;
+    venue_name: string;
+    location_city: string;
     genre: Genre;
   }) => Promise<{ data: TourEvent | null; error: string | null }>;
   signOut: () => Promise<void>;
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .order("date", { ascending: true });
+      .order("event_date", { ascending: true });
 
     if (error) {
       console.error("Failed to fetch events from DB:", error.message);
@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return data as TourEvent[];
   }, []);
+
 
   const fetchSavedEvents = useCallback(async (userId: string) => {
 
@@ -419,10 +420,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createEvent = useCallback(
     async (eventData: {
-      artist: string;
-      date: string;
-      venue: string;
-      city: string;
+      artist_name: string;
+      event_date: string;
+      venue_name: string;
+      location_city: string;
       genre: Genre;
     }) => {
       if (!user) {
@@ -433,10 +434,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("events")
         .insert({
-          artist: eventData.artist,
-          date: eventData.date,
-          venue: eventData.venue,
-          city: eventData.city,
+          artist_name: eventData.artist_name,
+          event_date: eventData.event_date,
+          venue_name: eventData.venue_name,
+          location_city: eventData.location_city,
           genre: eventData.genre,
         })
         .select()
@@ -450,7 +451,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       safeStartViewTransition(() => {
         setEvents((prev) => {
           const next = [...prev, newEvent];
-          return next.sort((a, b) => a.date.localeCompare(b.date));
+          return next.sort((a, b) => a.event_date.localeCompare(b.event_date));
         });
       });
 
@@ -458,6 +459,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [user],
   );
+
 
   useEffect(() => {
     fetchAllEvents().then((data) => {

@@ -214,14 +214,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 {event.genre}
               </span>
               <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {event.artist}
+                {event.artist_name}
               </h1>
               <p className="text-base text-zinc-400 font-medium sm:text-lg flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span>📅 {formatDate(event.date)}</span>
+                <span>📅 {formatDate(event.event_date)}</span>
                 <span className="text-zinc-700">·</span>
-                <span>📍 {event.venue} ({event.city})</span>
+                <span>📍 {event.venue_name} ({event.location_city})</span>
               </p>
             </div>
+
 
             {/* 行った ＆ お気に入り ＆ シェアボタン */}
             <div className="flex flex-wrap items-center gap-3">
@@ -424,7 +425,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-2.5 pt-2">
                 {/* 楽天トラベル宿泊（会場付近の検索）アフィリエイト用URL */}
                 <a
-                  href={`https://search.rakuten.co.jp/search/mall/${encodeURIComponent(event.venue + ' ホテル')}/`}
+                  href={`https://search.rakuten.co.jp/search/mall/${encodeURIComponent(event.venue_name + ' ホテル')}/`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 text-zinc-100 ring-1 ring-zinc-800 px-4 py-3.5 text-sm font-semibold hover:bg-zinc-800 transition-all active:scale-[0.98]"
@@ -455,11 +456,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         onSubmit={handleCheckInSubmit}
         onConfirmDelete={handleCheckInDelete}
         isAttended={isAttended}
-        artistName={event.artist}
+        artistName={event.artist_name}
       />
     </div>
   );
 }
+
 
 function CheckIcon({ solid }: { solid: boolean }) {
   return (

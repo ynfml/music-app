@@ -35,6 +35,7 @@ export default function MyPage() {
     user,
     profile,
     loading,
+    events,
     savedEventIds,
     attendedEventIds,
     followingIds,
@@ -95,8 +96,9 @@ export default function MyPage() {
     );
   }
 
-  const savedEvents = TOUR_EVENTS.filter((event) => savedEventIds.includes(event.id));
-  const attendedEvents = TOUR_EVENTS.filter((event) => attendedEventIds.includes(event.id));
+  const savedEvents = events.filter((event) => savedEventIds.includes(event.id));
+  const attendedEvents = events.filter((event) => attendedEventIds.includes(event.id));
+
 
   return (
     <div className="relative min-h-full bg-black text-zinc-100">
@@ -268,18 +270,18 @@ export default function MyPage() {
                               {event.genre}
                             </span>
                             <h3 className="text-lg font-bold text-white mt-1.5 leading-snug">
-                              {event.artist}
+                              {event.artist_name}
                             </h3>
                           </div>
 
                           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4 text-xs text-zinc-400">
                             <div className="flex items-center gap-1.5">
                               <span className="text-violet-400">📅</span>
-                              <time dateTime={event.date}>{formatDate(event.date)}</time>
+                              <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <span className="text-fuchsia-400">📍</span>
-                              <span>{event.venue} ({event.city})</span>
+                              <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>
 
@@ -325,18 +327,18 @@ export default function MyPage() {
                               {event.genre}
                             </span>
                             <h3 className="text-lg font-bold text-white mt-1.5 leading-snug">
-                              {event.artist}
+                              {event.artist_name}
                             </h3>
                           </div>
 
                           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4 text-xs text-zinc-400">
                             <div className="flex items-center gap-1.5">
                               <span className="text-violet-400">📅</span>
-                              <time dateTime={event.date}>{formatDate(event.date)}</time>
+                              <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <span className="text-fuchsia-400">📍</span>
-                              <span>{event.venue} ({event.city})</span>
+                              <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>
 

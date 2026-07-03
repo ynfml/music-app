@@ -26,7 +26,7 @@ function formatDate(dateStr: string) {
 
 export default function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: targetUserId } = use(params);
-  const { user, followingIds, toggleFollow } = useAuth();
+  const { user, events, followingIds, toggleFollow } = useAuth();
   
   const [targetProfile, setTargetProfile] = useState<Profile | null>(null);
   const [savedEventIds, setSavedEventIds] = useState<string[]>([]);
@@ -117,8 +117,8 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
   }
 
   // 行きたい / 行った公演リスト
-  const savedEvents = TOUR_EVENTS.filter((e) => savedEventIds.includes(e.id));
-  const attendedEvents = TOUR_EVENTS.filter((e) => attendedEventIds.includes(e.id));
+  const savedEvents = events.filter((e) => savedEventIds.includes(e.id));
+  const attendedEvents = events.filter((e) => attendedEventIds.includes(e.id));
 
   const isMe = user?.id === targetUserId;
 
@@ -189,10 +189,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
                           {event.genre}
                         </span>
-                        <h3 className="text-sm font-bold text-white mt-1">{event.artist}</h3>
+                        <h3 className="text-sm font-bold text-white mt-1">{event.artist_name}</h3>
                         <p className="text-[11px] text-zinc-500 mt-1">
-                          📅 {formatDate(event.date)} · 📍 {event.venue}
+                          📅 {formatDate(event.event_date)} · 📍 {event.venue_name}
                         </p>
+
                       </div>
                       <Link href={`/events/${event.id}`} className="text-xs text-violet-400 hover:text-violet-300 font-semibold pt-1">
                         詳細 →
@@ -220,10 +221,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
                           {event.genre}
                         </span>
-                        <h3 className="text-sm font-bold text-white mt-1">{event.artist}</h3>
+                        <h3 className="text-sm font-bold text-white mt-1">{event.artist_name}</h3>
                         <p className="text-[11px] text-zinc-500 mt-1">
-                          📅 {formatDate(event.date)} · 📍 {event.venue}
+                          📅 {formatDate(event.event_date)} · 📍 {event.venue_name}
                         </p>
+
                       </div>
                       <Link href={`/events/${event.id}`} className="text-xs text-violet-400 hover:text-violet-300 font-semibold pt-1">
                         詳細 →

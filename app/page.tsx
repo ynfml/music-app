@@ -26,8 +26,9 @@ function formatDate(dateStr: string) {
 }
 
 function compareByDate(a: TourEvent, b: TourEvent) {
-  return a.date.localeCompare(b.date);
+  return a.event_date.localeCompare(b.event_date);
 }
+
 
 function sortEventsForUser(
   events: TourEvent[],
@@ -210,7 +211,7 @@ export default function Home() {
                         <div className="absolute right-4 top-4 z-20 flex gap-2">
                           <button
                             type="button"
-                            onClick={() => setActiveDialogEvent({ id: event.id, artist: event.artist, isAttended })}
+                            onClick={() => setActiveDialogEvent({ id: event.id, artist: event.artist_name, isAttended })}
                             className={`rounded-full p-2 transition-all hover:bg-zinc-900 ${
                               isAttended
                                 ? "text-emerald-400 shadow-md shadow-emerald-500/10"
@@ -242,25 +243,26 @@ export default function Home() {
                           {event.genre}
                         </span>
                         <h2 className="text-xl font-bold tracking-tight text-white mt-1.5 sm:text-2xl">
-                          {event.artist}
+                          {event.artist_name}
                         </h2>
                       </div>
 
                       <div className="mb-6 flex flex-1 flex-col gap-3 text-sm text-zinc-400">
                         <div className="flex items-center gap-2.5">
                           <CalendarIcon />
-                          <time dateTime={event.date} className="text-zinc-200">
-                            {formatDate(event.date)}
+                          <time dateTime={event.event_date} className="text-zinc-200">
+                            {formatDate(event.event_date)}
                           </time>
                         </div>
                         <div className="flex items-center gap-2.5">
                           <PinIcon />
                           <span>
-                            <span className="text-zinc-200">{event.venue}</span>
-                            <span className="text-zinc-500"> · {event.city}</span>
+                            <span className="text-zinc-200">{event.venue_name}</span>
+                            <span className="text-zinc-500"> · {event.location_city}</span>
                           </span>
                         </div>
                       </div>
+
 
                       <Link
                         href={`/events/${event.id}`}
@@ -294,7 +296,13 @@ export default function Home() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={async (data) => {
-          const res = await createEvent(data);
+          const res = await createEvent({
+            artist_name: data.artist,
+            event_date: data.date,
+            venue_name: data.venue,
+            location_city: data.city,
+            genre: data.genre,
+          });
           if (res.error) {
             throw new Error(res.error);
           }
@@ -303,6 +311,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 function CreateEventDialog({
   isOpen,
