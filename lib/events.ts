@@ -7,6 +7,7 @@ export type TourEvent = {
   venue_name: string;
   location_city: string;
   genre: Genre;
+  is_festival?: boolean;
 };
 
 export const TOUR_EVENTS: TourEvent[] = [

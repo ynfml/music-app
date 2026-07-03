@@ -13,7 +13,6 @@ const GENRE_STYLES: Record<Genre, string> = {
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
-  Festival: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
 };
 
 function formatDate(dateStr: string) {
@@ -79,6 +78,8 @@ export default function Home() {
 
     if (activeGenre === "Saved") {
       filtered = events.filter((event) => savedEventIds.includes(event.id));
+    } else if (activeGenre === "Festival") {
+      filtered = events.filter((event) => event.is_festival);
     } else if (activeGenre !== "All") {
       filtered = events.filter((event) => event.genre === activeGenre);
     }
@@ -238,11 +239,18 @@ export default function Home() {
                       )}
 
                       <div className="mb-4 pr-24">
-                        <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}
-                        >
-                          {event.genre}
-                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {event.is_festival && (
+                            <span className="inline-block rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                              Festival
+                            </span>
+                          )}
+                          <span
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}
+                          >
+                            {event.genre}
+                          </span>
+                        </div>
                         <h2 className="text-xl font-bold tracking-tight text-white mt-1.5 sm:text-2xl">
                           {event.artist_name}
                         </h2>
@@ -303,6 +311,7 @@ export default function Home() {
             venue_name: data.venue,
             location_city: data.city,
             genre: data.genre,
+            is_festival: data.isFestival,
           });
           if (res.error) {
             throw new Error(res.error);
@@ -321,13 +330,14 @@ function CreateEventDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { artist: string; date: string; venue: string; city: string; genre: any }) => Promise<void>;
+  onSubmit: (data: { artist: string; date: string; venue: string; city: string; genre: Genre; isFestival: boolean }) => Promise<void>;
 }) {
   const [artist, setArtist] = useState("");
   const [date, setDate] = useState("");
   const [venue, setVenue] = useState("");
   const [city, setCity] = useState("");
-  const [genre, setGenre] = useState<any>("Rock");
+  const [genre, setGenre] = useState<Genre>("Rock");
+  const [isFestival, setIsFestival] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -342,12 +352,13 @@ function CreateEventDialog({
     setError(null);
     setSubmitting(true);
     try {
-      await onSubmit({ artist, date, venue, city, genre });
+      await onSubmit({ artist, date, venue, city, genre, isFestival });
       setArtist("");
       setDate("");
       setVenue("");
       setCity("");
       setGenre("Rock");
+      setIsFestival(false);
       onClose();
     } catch (err: any) {
       setError(err.message || "エラーが発生しました");
@@ -372,13 +383,13 @@ function CreateEventDialog({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">アーティスト名</label>
+              <label className="mb-1.5 block text-xs font-semibold text-zinc-300">アーティスト名（またはフェス名）</label>
               <input
                 type="text"
                 required
                 value={artist}
                 onChange={(e) => setArtist(e.target.value)}
-                placeholder="例: Coldplay"
+                placeholder="例: Coldplay / ULTRA JAPAN"
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
               />
             </div>
@@ -420,15 +431,27 @@ function CreateEventDialog({
               <label className="mb-1.5 block text-xs font-semibold text-zinc-300">ジャンル</label>
               <select
                 value={genre}
-                onChange={(e) => setGenre(e.target.value as any)}
+                onChange={(e) => setGenre(e.target.value as Genre)}
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-violet-500 focus:outline-none"
               >
                 <option value="Rock">Rock</option>
                 <option value="Pop">Pop</option>
                 <option value="HipHop">HipHop</option>
                 <option value="EDM">EDM</option>
-                <option value="Festival">Festival (フェス)</option>
               </select>
+            </div>
+            
+            <div className="flex items-center gap-2.5 py-1">
+              <input
+                type="checkbox"
+                id="is_festival"
+                checked={isFestival}
+                onChange={(e) => setIsFestival(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-zinc-950"
+              />
+              <label htmlFor="is_festival" className="text-xs font-semibold text-zinc-300 cursor-pointer select-none">
+                これはフェス（Festival）ですか？
+              </label>
             </div>
 
             {error && <p className="text-xs text-rose-400">{error}</p>}

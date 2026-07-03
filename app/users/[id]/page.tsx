@@ -12,7 +12,6 @@ const GENRE_STYLES: Record<Genre, string> = {
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
-  Festival: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
 };
 
 function formatDate(dateStr: string) {
@@ -187,9 +186,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                   <li key={event.id}>
                     <div className="flex justify-between items-start p-4 rounded-xl border border-zinc-900 bg-zinc-950/80">
                       <div>
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
-                          {event.genre}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {event.is_festival && (
+                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                              Festival
+                            </span>
+                          )}
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
+                            {event.genre}
+                          </span>
+                        </div>
                         <h3 className="text-sm font-bold text-white mt-1">{event.artist_name}</h3>
                         <p className="text-[11px] text-zinc-500 mt-1">
                           📅 {formatDate(event.event_date)} · 📍 {event.venue_name}
@@ -219,9 +225,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                   <li key={event.id}>
                     <div className="flex justify-between items-start p-4 rounded-xl border border-zinc-900 bg-zinc-950/80">
                       <div>
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
-                          {event.genre}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {event.is_festival && (
+                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                              Festival
+                            </span>
+                          )}
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${GENRE_STYLES[event.genre]}`}>
+                            {event.genre}
+                          </span>
+                        </div>
                         <h3 className="text-sm font-bold text-white mt-1">{event.artist_name}</h3>
                         <p className="text-[11px] text-zinc-500 mt-1">
                           📅 {formatDate(event.event_date)} · 📍 {event.venue_name}

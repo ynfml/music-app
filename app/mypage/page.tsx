@@ -11,7 +11,6 @@ const GENRE_STYLES = {
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
-  Festival: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
 };
 
 // ダミーユーザーのリスト (おすすめ音楽ファン)
@@ -267,9 +266,16 @@ export default function MyPage() {
                           </button>
 
                           <div className="mb-4 pr-10">
-                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
-                              {event.genre}
-                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {event.is_festival && (
+                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                                  Festival
+                                </span>
+                              )}
+                              <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
+                                {event.genre}
+                              </span>
+                            </div>
                             <h3 className="text-lg font-bold text-white mt-1.5 leading-snug">
                               {event.artist_name}
                             </h3>
@@ -324,9 +330,16 @@ export default function MyPage() {
                           </button>
 
                           <div className="mb-4 pr-10">
-                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
-                              {event.genre}
-                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {event.is_festival && (
+                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                                  Festival
+                                </span>
+                              )}
+                              <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
+                                {event.genre}
+                              </span>
+                            </div>
                             <h3 className="text-lg font-bold text-white mt-1.5 leading-snug">
                               {event.artist_name}
                             </h3>

@@ -104,7 +104,6 @@ const GENRE_STYLES: Record<Genre, string> = {
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
-  Festival: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
 };
 
 function formatDate(dateStr: string) {
@@ -211,9 +210,16 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="space-y-4">
-              <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
-                {event.genre}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                {event.is_festival && (
+                  <span className="inline-block rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                    Festival
+                  </span>
+                )}
+                <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
+                  {event.genre}
+                </span>
+              </div>
               <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {event.artist_name}
               </h1>

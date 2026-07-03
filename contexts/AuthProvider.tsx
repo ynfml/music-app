@@ -37,6 +37,7 @@ type AuthContextValue = {
     venue_name: string;
     location_city: string;
     genre: Genre;
+    is_festival?: boolean;
   }) => Promise<{ data: TourEvent | null; error: string | null }>;
   signOut: () => Promise<void>;
 };
@@ -425,6 +426,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       venue_name: string;
       location_city: string;
       genre: Genre;
+      is_festival?: boolean;
     }) => {
       if (!user) {
         return { data: null, error: "ログインが必要です" };
@@ -439,6 +441,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           venue_name: eventData.venue_name,
           location_city: eventData.location_city,
           genre: eventData.genre,
+          is_festival: eventData.is_festival || false,
         })
         .select()
         .single();

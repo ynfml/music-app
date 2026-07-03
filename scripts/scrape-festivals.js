@@ -61,6 +61,33 @@ const TARGET_FESTIVALS = [
   'LOUD PARK', 'ラウドパーク'
 ];
 
+const FESTIVAL_GENRE_MAP = {
+  // EDM / Electronic 系
+  'ULTRA JAPAN': 'EDM',
+  'ウルトラジャパン': 'EDM',
+  'SONICMANIA': 'EDM',
+  'ソニマニ': 'EDM',
+  
+  // HipHop 系 (将来的な拡張用)
+  'HIPHOP': 'HipHop',
+  'THE HOPE': 'HipHop',
+  
+  // Pop 系 (将来的な拡張用)
+  'POP HILL': 'Pop',
+  
+  // デフォルトは Rock (サマソニ、フジ、ロッキンなどはすべてRock主体)
+};
+
+function getFestivalGenre(title) {
+  const upperTitle = title.toUpperCase();
+  for (const [keyword, genre] of Object.entries(FESTIVAL_GENRE_MAP)) {
+    if (upperTitle.includes(keyword.toUpperCase())) {
+      return genre;
+    }
+  }
+  return 'Rock'; // デフォルトはRock
+}
+
 function isTargetFestival(title) {
   const upperTitle = title.toUpperCase();
   return TARGET_FESTIVALS.some(keyword => upperTitle.includes(keyword.toUpperCase()));
@@ -170,12 +197,16 @@ async function runFestivalScraper() {
         return;
       }
 
+      // フェス名から本来の音楽ジャンルを判定
+      const baseGenre = getFestivalGenre(title);
+
       crawledFestivals.push({
         artist_name: title,  // eventsテーブルの主キー名にフェス名を割り振る
         venue_name: venue,
         location_city: city,
         event_date: formattedDate,
-        genre: 'Festival' // フェスはFestivalジャンルとして独立管理
+        genre: baseGenre,
+        is_festival: true
       });
 
       pageCount++;
