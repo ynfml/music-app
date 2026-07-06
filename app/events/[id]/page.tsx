@@ -179,32 +179,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }[]>([]);
   const [setlistLoading, setSetlistLoading] = useState(true);
 
-  // タイムテーブル状態変数
-  const [dbTimetable, setDbTimetable] = useState<{
-    id: string;
-    stage_name: string | null;
-    artist_name: string;
-    start_time: string | null;
-    track_order: number;
-  }[]>([]);
-  const [timetableLoading, setTimetableLoading] = useState(true);
-
-  async function loadTimetable() {
-    setTimetableLoading(true);
-    const supabase = createSupabaseClient();
-    const { data, error } = await supabase
-      .from("timetables")
-      .select("id, stage_name, artist_name, start_time, track_order")
-      .eq("event_id", id)
-      .order("track_order", { ascending: true });
-
-    if (!error && data) {
-      setDbTimetable(data as any);
-    } else {
-      console.error("Failed to load timetable:", error?.message);
-    }
-    setTimetableLoading(false);
-  }
 
   async function loadSetlist() {
     setSetlistLoading(true);
@@ -251,7 +225,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   loadAttendees();
   loadSetlist();
-  loadTimetable();
 }, [id, attendedEventIds]);
 
   // 公演情報を探す
@@ -512,32 +485,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-6">
               <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">タイムテーブル</h2>
               <ul className="space-y-4">
-                {dbTimetable.length > 0 ? (
-                  dbTimetable.map((item, index) => (
-                    <li key={item.id} className="flex gap-4 items-start relative pb-3 last:pb-0">
-                      {/* 縦棒 (タイムライン風) */}
-                      {index < dbTimetable.length - 1 && (
-                        <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-zinc-900" />
-                      )}
-                      
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-900 ring-1 ring-zinc-800 text-[10px] font-bold text-violet-400 font-mono">
-                        {index + 1}
-                      </div>
-                      
-                      <div className="flex-1 pt-0.5">
-                        <p className="text-sm font-semibold text-white leading-none mb-1">{item.artist_name}</p>
-                        {item.start_time && (
-                          <p className="text-[10px] text-zinc-500 font-mono">{item.start_time}〜</p>
-                        )}
-                        {item.stage_name && (
-                          <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 font-medium tracking-wide">
-                            {item.stage_name}
-                          </span>
-                        )}
-                      </div>
-                    </li>
-                  ))
-                ) : event.open_time || event.start_time ? (
+                {event.open_time || event.start_time ? (
                   <>
                     {event.open_time && (
                       <li className="flex gap-4 items-start">

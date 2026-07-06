@@ -81,42 +81,6 @@ function detectGenre(performer, title) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// 出演順を自動分割してタイムテーブルに登録するヘルパー
-async function populateTimetable(supabase, eventId, artistName) {
-  // 重複防止のため、既存のタイムテーブルを全削除
-  await supabase
-    .from('timetables')
-    .delete()
-    .eq('event_id', eventId);
-
-  // 区切り文字で出演アーティストを分割 (対バン形式のパース)
-  const separators = /\s*\/\s*|\s*、\s*|\s+guest[：:]\s*|\s+vs[：:]\s*|\s+w\/\s*|\s+&\s+/i;
-  const performers = artistName
-    .split(separators)
-    .map(p => p.trim())
-    .filter(p => p.length > 0);
-
-  if (performers.length === 0) return;
-
-  const timetableRecords = performers.map((performer, index) => ({
-    event_id: eventId,
-    artist_name: performer,
-    track_order: index,
-    stage_name: null,
-    start_time: null
-  }));
-
-  const { error } = await supabase
-    .from('timetables')
-    .insert(timetableRecords);
-
-  if (error) {
-    console.error(`   ❌ Failed to insert timetable for event ${eventId}:`, error.message);
-  } else {
-    console.log(`   ⏱️ Auto-populated timetable with ${timetableRecords.length} acts.`);
-  }
-}
-
 // ==========================================================
 // 4. メイン処理
 // ==========================================================
@@ -273,8 +237,6 @@ async function runZeppScraperFixed() {
           })
           .eq('id', id);
         
-        // タイムテーブルを自動抽出して上書き
-        await populateTimetable(supabase, id, performer);
         continue;
       }
 
@@ -301,8 +263,6 @@ async function runZeppScraperFixed() {
         console.error(`   ❌ Insert failed for ${performer}:`, insertError.message);
       } else if (newEvent) {
         existingMap.set(lookupKey, newEvent.id);
-        // 新しいタイムテーブルレコードを作成
-        await populateTimetable(supabase, newEvent.id, performer);
         count++;
       }
     }
