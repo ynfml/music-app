@@ -8,6 +8,9 @@ export type TourEvent = {
   location_city: string;
   genre: Genre;
   is_festival?: boolean;
+  ticket_price_info?: string | null;
+  open_time?: string | null;
+  start_time?: string | null;
 };
 
 export const TOUR_EVENTS: TourEvent[] = [

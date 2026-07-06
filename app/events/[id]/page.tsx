@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthProvider";
 import { TOUR_EVENTS } from "@/lib/events";
 import type { Genre } from "@/lib/types";
 import CheckInDialog from "@/components/CheckInDialog";
+import EditSetlistDialog from "@/components/EditSetlistDialog";
 
 // 各イベントIDに応じた詳細なダミーコンテンツ
 type DetailedContent = {
@@ -116,11 +117,37 @@ function formatDate(dateStr: string) {
   }).format(date);
 }
 
+function getCleanedArtistQuery(artistName: string) {
+  let query = artistName;
+  // 対バンやゲスト情報、O.A、DJ表記などを除外してメインのアーティスト名だけを切り出す
+  query = query.split(/ゲスト|guest|対バン|vs|w\/|\/|&|＆/i)[0];
+  return query.trim();
+}
+
+function wrapWithAffiliate(playguide: "eplus" | "pia" | "ltike", targetUrl: string) {
+  const piaSid = process.env.NEXT_PUBLIC_AFFILIATE_PIA_SID;
+  const piaPid = process.env.NEXT_PUBLIC_AFFILIATE_PIA_PID;
+  const ltikeMatid = process.env.NEXT_PUBLIC_AFFILIATE_LTIKE_MATID;
+  const eplusPartnerId = process.env.NEXT_PUBLIC_AFFILIATE_EPLUS_PARTNERID;
+
+  if (playguide === "pia" && piaSid && piaPid) {
+    return `https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=${piaSid}&pid=${piaPid}&vc_url=${encodeURIComponent(targetUrl)}`;
+  }
+  if (playguide === "ltike" && ltikeMatid) {
+    return `https://px.a8.net/svt/ejp?a8mat=${ltikeMatid}&nokey=on&murl=${encodeURIComponent(targetUrl)}`;
+  }
+  if (playguide === "eplus" && eplusPartnerId) {
+    return `https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=${piaSid || 'EPLUS_SID'}&pid=${eplusPartnerId}&vc_url=${encodeURIComponent(targetUrl)}`;
+  }
+  return targetUrl;
+}
+
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent } = useAuth();
   const [copied, setCopied] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSetlistDialogOpen, setIsSetlistDialogOpen] = useState(false);
 
   const handleCheckInSubmit = async (comment: string) => {
     if (event) {
@@ -144,6 +171,58 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }[]>([]);
   const [attendeesLoading, setAttendeesLoading] = useState(true);
 
+  const [setlist, setSetlist] = useState<{
+    id?: string;
+    song_title: string;
+    album_name: string | null;
+    track_order: number;
+  }[]>([]);
+  const [setlistLoading, setSetlistLoading] = useState(true);
+
+  // タイムテーブル状態変数
+  const [dbTimetable, setDbTimetable] = useState<{
+    id: string;
+    stage_name: string | null;
+    artist_name: string;
+    start_time: string | null;
+    track_order: number;
+  }[]>([]);
+  const [timetableLoading, setTimetableLoading] = useState(true);
+
+  async function loadTimetable() {
+    setTimetableLoading(true);
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+      .from("timetables")
+      .select("id, stage_name, artist_name, start_time, track_order")
+      .eq("event_id", id)
+      .order("track_order", { ascending: true });
+
+    if (!error && data) {
+      setDbTimetable(data as any);
+    } else {
+      console.error("Failed to load timetable:", error?.message);
+    }
+    setTimetableLoading(false);
+  }
+
+  async function loadSetlist() {
+    setSetlistLoading(true);
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase
+      .from("setlists")
+      .select("id, song_title, album_name, track_order")
+      .eq("event_id", id)
+      .order("track_order", { ascending: true });
+
+    if (!error && data) {
+      setSetlist(data as any);
+    } else {
+      console.error("Failed to load setlist:", error?.message);
+    }
+    setSetlistLoading(false);
+  }
+
   useEffect(() => {
     async function loadAttendees() {
       setAttendeesLoading(true);
@@ -163,15 +242,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         .order("created_at", { ascending: false });
 
       if (!error && data) {
-        setAttendees(data as any);
-      } else {
-        console.error("Failed to load attendees:", error?.message);
-      }
-      setAttendeesLoading(false);
+      setAttendees(data as any);
+    } else {
+      console.error("Failed to load attendees:", error?.message);
     }
+    setAttendeesLoading(false);
+  }
 
-    loadAttendees();
-  }, [id, attendedEventIds]);
+  loadAttendees();
+  loadSetlist();
+  loadTimetable();
+}, [id, attendedEventIds]);
 
   // 公演情報を探す
   const event = events.find((e) => e.id === id);
@@ -295,29 +376,68 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
             {/* プレイリスト風のトラックリスト */}
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm sm:p-8">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <span>🎵</span> 代表曲（ライブ定番曲）
-              </h2>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>🎵</span> 本日のセットリスト ({setlist.length}曲)
+                </h2>
+                {user ? (
+                  <button
+                    onClick={() => setIsSetlistDialogOpen(true)}
+                    className="rounded-xl bg-zinc-900 text-xs text-zinc-300 hover:bg-zinc-850 hover:text-white transition-all font-semibold px-4 py-2 border border-zinc-800 flex items-center gap-1.5 active:scale-[0.98]"
+                  >
+                    <span>✍️</span> セットリストを投稿・編集
+                  </button>
+                ) : (
+                  <span className="text-xs text-zinc-500">※ ログインすると編集に参加できます</span>
+                )}
+              </div>
               <div className="space-y-3">
-                {detail.tracks.map((track, i) => (
-                  <div key={track.title} className="group/track flex items-center justify-between rounded-xl p-3.5 hover:bg-zinc-900/60 transition-colors border border-transparent hover:border-zinc-850">
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-semibold text-zinc-600 group-hover/track:text-violet-400 transition-colors w-4 text-center">
-                        {i + 1}
-                      </span>
-                      <button className="h-7 w-7 rounded-full bg-zinc-900 group-hover/track:bg-violet-600 flex items-center justify-center text-zinc-500 group-hover/track:text-white transition-all">
-                        <span className="text-[10px]">▶</span>
-                      </button>
-                      <div>
-                        <h4 className="text-sm font-bold text-white group-hover/track:text-violet-300 transition-colors">
-                          {track.title}
-                        </h4>
-                        <span className="text-[10px] text-zinc-500">再生回数: {track.plays}回</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold text-zinc-500">{track.duration}</span>
+                {setlistLoading ? (
+                  <div className="flex justify-center py-12 text-zinc-500">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+                    <span className="ml-3 text-xs">セットリスト読み込み中...</span>
                   </div>
-                ))}
+                ) : setlist.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <span className="text-2xl text-zinc-700">🎵</span>
+                    <p className="text-sm text-zinc-400 mt-3 font-medium">この公演のセットリストはまだ登録されていません。</p>
+                    {user ? (
+                      <button
+                        onClick={() => setIsSetlistDialogOpen(true)}
+                        className="mt-4 rounded-xl bg-violet-600/10 text-violet-400 border border-violet-500/20 px-4 py-2 text-xs font-semibold hover:bg-violet-650/20 transition-all"
+                      >
+                        最初の曲を登録する
+                      </button>
+                    ) : (
+                      <p className="text-xs text-zinc-500 mt-1">ログインして最初の曲を登録しましょう！</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {setlist.map((track, i) => (
+                      <div
+                        key={track.id || i}
+                        className="group/track flex items-center justify-between rounded-xl p-3.5 hover:bg-zinc-900/40 transition-all border border-transparent hover:border-zinc-850"
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <span className="text-sm font-mono font-bold text-zinc-500 group-hover/track:text-violet-400 transition-colors w-6 text-center">
+                            {track.track_order}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-bold text-white group-hover/track:text-violet-300 transition-colors truncate">
+                              {track.song_title}
+                            </h4>
+                            {track.album_name && (
+                              <span className="text-[10px] text-zinc-500 truncate block mt-0.5">
+                                💿 {track.album_name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -392,34 +512,138 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-6">
               <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">タイムテーブル</h2>
               <ul className="space-y-4">
-                {detail.timetable.map((item) => (
-                  <li key={item.time} className="flex gap-4 items-start">
-                    <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
-                      {item.time}
-                    </span>
-                    <span className="text-sm text-zinc-300 pt-0.5">{item.label}</span>
-                  </li>
-                ))}
+                {dbTimetable.length > 0 ? (
+                  dbTimetable.map((item, index) => (
+                    <li key={item.id} className="flex gap-4 items-start relative pb-3 last:pb-0">
+                      {/* 縦棒 (タイムライン風) */}
+                      {index < dbTimetable.length - 1 && (
+                        <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-zinc-900" />
+                      )}
+                      
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-900 ring-1 ring-zinc-800 text-[10px] font-bold text-violet-400 font-mono">
+                        {index + 1}
+                      </div>
+                      
+                      <div className="flex-1 pt-0.5">
+                        <p className="text-sm font-semibold text-white leading-none mb-1">{item.artist_name}</p>
+                        {item.start_time && (
+                          <p className="text-[10px] text-zinc-500 font-mono">{item.start_time}〜</p>
+                        )}
+                        {item.stage_name && (
+                          <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 font-medium tracking-wide">
+                            {item.stage_name}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))
+                ) : event.open_time || event.start_time ? (
+                  <>
+                    {event.open_time && (
+                      <li className="flex gap-4 items-start">
+                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                          {event.open_time}
+                        </span>
+                        <span className="text-sm text-zinc-300 pt-0.5">開場 (Doors Open)</span>
+                      </li>
+                    )}
+                    {event.start_time && (
+                      <li className="flex gap-4 items-start">
+                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                          {event.start_time}
+                        </span>
+                        <span className="text-sm text-zinc-300 pt-0.5">開演 (Show Starts)</span>
+                      </li>
+                    )}
+                  </>
+                ) : (
+                  detail.timetable.map((item) => (
+                    <li key={item.time} className="flex gap-4 items-start">
+                      <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                        {item.time}
+                      </span>
+                      <span className="text-sm text-zinc-300 pt-0.5">{item.label}</span>
+                    </li>
+                  ))
+                )}
               </ul>
             </section>
 
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-6">
               <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">チケット料金 (税込)</h2>
-              <ul className="space-y-3">
-                {detail.ticketInfo.map((info) => (
-                  <li key={info.type} className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 font-medium">{info.type}</span>
-                    <span className="text-white font-bold font-mono">{info.price}</span>
-                  </li>
-                ))}
-              </ul>
+              {event.ticket_price_info ? (
+                <div className="text-sm text-zinc-300 leading-relaxed font-medium bg-zinc-900/30 rounded-xl p-3 border border-zinc-900 mb-6">
+                  {event.ticket_price_info}
+                </div>
+              ) : (
+                <ul className="space-y-3 mb-6">
+                  {detail.ticketInfo.map((info) => (
+                    <li key={info.type} className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-400 font-medium">{info.type}</span>
+                      <span className="text-white font-bold font-mono">{info.price}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-              <a
-                href="#"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98] mt-4"
-              >
-                <span>🎫</span> チケット購入（プレイガイド）
-              </a>
+              <div className="border-t border-zinc-900 pt-5 space-y-3">
+                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">🎫 チケットを探す (プレイガイド)</h3>
+                
+                {/* イープラス */}
+                <a
+                  href={wrapWithAffiliate(
+                    "eplus",
+                    `https://eplus.jp/sf/search?keyword=${encodeURIComponent(getCleanedArtistQuery(event.artist_name))}`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-150 ring-1 ring-zinc-850 px-4 py-3 text-sm font-semibold hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    イープラス (e+) で探す
+                  </span>
+                  <span className="text-zinc-500 text-xs">➔</span>
+                </a>
+
+                {/* チケットぴあ */}
+                <a
+                  href={wrapWithAffiliate(
+                    "pia",
+                    `https://t.pia.jp/pia/search_all.do?kw=${encodeURIComponent(getCleanedArtistQuery(event.artist_name))}`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-150 ring-1 ring-zinc-850 px-4 py-3 text-sm font-semibold hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                    チケットぴあ で探す
+                  </span>
+                  <span className="text-zinc-500 text-xs">➔</span>
+                </a>
+
+                {/* ローソンチケット */}
+                <a
+                  href={wrapWithAffiliate(
+                    "ltike",
+                    `https://l-tike.com/search/?keyword=${encodeURIComponent(getCleanedArtistQuery(event.artist_name))}`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-between rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-150 ring-1 ring-zinc-850 px-4 py-3 text-sm font-semibold hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                    ローチケ で探す
+                  </span>
+                  <span className="text-zinc-500 text-xs">➔</span>
+                </a>
+
+                <p className="text-[10px] text-zinc-500 leading-relaxed pt-2">
+                  ※ 先行受付や一般販売が終了している場合があります。各プレイガイドで最新の販売スケジュールと空席状況をご確認ください。
+                </p>
+              </div>
             </section>
 
             {/* 💸 マネタイズ用：ライブ遠征アフィリエイト導線 */}
@@ -464,6 +688,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         onConfirmDelete={handleCheckInDelete}
         isAttended={isAttended}
         artistName={event.artist_name}
+      />
+
+      <EditSetlistDialog
+        isOpen={isSetlistDialogOpen}
+        onClose={() => setIsSetlistDialogOpen(false)}
+        eventId={event.id}
+        initialTracks={setlist}
+        onSave={loadSetlist}
       />
     </div>
   );
