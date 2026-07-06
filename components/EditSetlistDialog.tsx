@@ -272,7 +272,7 @@ export default function EditSetlistDialog({
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 hover:from-primary-500 hover:to-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 hover:from-primary-500 hover:to-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <>

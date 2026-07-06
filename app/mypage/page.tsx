@@ -8,7 +8,7 @@ import { TOUR_EVENTS } from "@/lib/events";
 
 const GENRE_STYLES = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+  Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -82,7 +82,7 @@ export default function MyPage() {
   if (!user) {
     return (
       <div className="relative min-h-[70vh] bg-black text-zinc-100 flex flex-col items-center justify-center p-6 text-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(168,85,247,0.1),transparent)]" aria-hidden />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(255,82,0,0.1),transparent)]" aria-hidden />
         <div className="relative z-10 max-w-sm">
           <svg className="mx-auto h-16 w-16 text-zinc-600 mb-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
@@ -102,12 +102,12 @@ export default function MyPage() {
 
   return (
     <div className="relative min-h-full bg-black text-zinc-100">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_60%_30%_at_50%_0%,rgba(168,85,247,0.15),transparent)]" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_60%_30%_at_50%_0%,rgba(255,82,0,0.15),transparent)]" aria-hidden />
 
       <main className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 sm:mb-12">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">My Dashboard</p>
-          <h1 className="bg-gradient-to-r from-white via-primary-200 to-rose-300 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
+          <h1 className="bg-gradient-to-r from-white via-primary-400 to-amber-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
             マイページ
           </h1>
         </header>
@@ -130,7 +130,7 @@ export default function MyPage() {
                   </div>
                   <div>
                     <span className="text-zinc-500 text-xs block">フォロワー</span>
-                    <span className="text-lg font-bold text-rose-400">{followerIds.length}</span>
+                    <span className="text-lg font-bold text-amber-400">{followerIds.length}</span>
                   </div>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export default function MyPage() {
                   <ul className="grid gap-4 sm:grid-cols-1">
                     {savedEvents.map((event) => (
                       <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
+                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(255,82,0,0.25)] sm:p-5">
                           
                           {/* 保存解除ボタン */}
                           <button
@@ -287,7 +287,7 @@ export default function MyPage() {
                               <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-rose-400">📍</span>
+                              <span className="text-amber-400">📍</span>
                               <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>
@@ -315,7 +315,7 @@ export default function MyPage() {
                   <ul className="grid gap-4 sm:grid-cols-1">
                     {attendedEvents.map((event) => (
                       <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
+                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(255,82,0,0.25)] sm:p-5">
                           
                           {/* チェックイン解除ボタン */}
                           <button
@@ -351,7 +351,7 @@ export default function MyPage() {
                               <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-rose-400">📍</span>
+                              <span className="text-amber-400">📍</span>
                               <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>

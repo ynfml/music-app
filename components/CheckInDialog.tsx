@@ -125,7 +125,7 @@ export default function CheckInDialog({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg px-5 py-2.5 text-xs font-semibold hover:from-primary-500 hover:to-rose-500 transition-all"
+                className="rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 text-white shadow-lg px-5 py-2.5 text-xs font-semibold hover:from-primary-500 hover:to-amber-500 transition-all"
               >
                 {isSubmitting ? "登録中..." : "チェックインする"}
               </button>

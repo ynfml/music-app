@@ -10,7 +10,7 @@ import CheckInDialog from "@/components/CheckInDialog";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+  Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -130,11 +130,11 @@ export default function Home() {
   return (
     <div className="relative min-h-full overflow-hidden bg-black text-zinc-100">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(168,85,247,0.25),transparent)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,82,0,0.25),transparent)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(236,72,153,0.12),transparent)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(255,140,0,0.12),transparent)]"
         aria-hidden
       />
 
@@ -145,7 +145,7 @@ export default function Home() {
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">
             MUSIC JOURNEY
           </p>
-          <h1 className="bg-gradient-to-r from-white via-primary-200 to-rose-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
+          <h1 className="bg-gradient-to-r from-white via-primary-400 to-amber-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
             音で繋がる、次のライブへ。
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
@@ -166,7 +166,7 @@ export default function Home() {
                 onClick={() => handleGenreChange(genre)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 ${
                   isActive
-                    ? "bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg shadow-primary-500/25"
+                    ? "bg-gradient-to-r from-primary-600 to-amber-600 text-white shadow-lg shadow-primary-500/25"
                     : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
                 }`}
               >
@@ -181,7 +181,7 @@ export default function Home() {
                 onClick={() => handleGenreChange("Saved")}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 ${
                   activeGenre === "Saved"
-                    ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/25"
+                    ? "bg-gradient-to-r from-pink-600 to-amber-600 text-white shadow-lg shadow-pink-500/25"
                     : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
                 }`}
               >
@@ -333,7 +333,7 @@ export default function Home() {
                 const isAttended = attendedEventIds.includes(event.id);
                 return (
                   <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)] sm:p-6">
+                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(255,82,0,0.35)] sm:p-6">
                       <div
                         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                         aria-hidden
@@ -415,7 +415,7 @@ export default function Home() {
 
                       <Link
                         href={`/events/${event.id}`}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-amber-500 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]"
                       >
                         詳細を見る
                       </Link>
@@ -594,12 +594,12 @@ function CreateEventDialog({
               </label>
             </div>
 
-            {error && <p className="text-xs text-rose-400">{error}</p>}
+            {error && <p className="text-xs text-amber-400">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
-              className="mt-2 w-full rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 disabled:opacity-50"
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-amber-500 disabled:opacity-50"
             >
               {submitting ? "登録中..." : "公演を登録する"}
             </button>
@@ -632,7 +632,7 @@ function CalendarIcon() {
 function PinIcon() {
   return (
     <svg
-      className="h-4 w-4 shrink-0 text-rose-400"
+      className="h-4 w-4 shrink-0 text-amber-400"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={1.5}

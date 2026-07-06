@@ -9,7 +9,7 @@ import type { Genre, Profile } from "@/lib/types";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+  Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -124,7 +124,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="relative min-h-full bg-black text-zinc-100 pb-20">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(168,85,247,0.12),transparent)]" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(255,82,0,0.12),transparent)]" aria-hidden />
 
       <main className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         {/* プロフィールヘッダー */}
@@ -153,7 +153,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
                   isFollowing
                     ? "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800 hover:bg-red-950/20 hover:text-red-400 hover:ring-red-900/30"
-                    : "bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg hover:from-primary-500 hover:to-rose-500"
+                    : "bg-gradient-to-r from-primary-600 to-amber-600 text-white shadow-lg hover:from-primary-500 hover:to-amber-500"
                 }`}
               >
                 {actionLoading ? "処理中..." : isFollowing ? "フォロー中 (解除)" : "フォローする"}

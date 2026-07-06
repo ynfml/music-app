@@ -15,7 +15,7 @@ export default function Header() {
         <div className="flex items-center gap-6 sm:gap-8">
           <Link
             href="/"
-            className="bg-gradient-to-r from-primary-400 via-rose-400 to-pink-500 bg-clip-text text-lg font-bold tracking-wider text-transparent sm:text-xl"
+            className="bg-gradient-to-r from-primary-400 via-amber-400 to-pink-500 bg-clip-text text-lg font-bold tracking-wider text-transparent sm:text-xl"
           >
             MUSIC JOURNEY
           </Link>

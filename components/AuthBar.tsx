@@ -167,7 +167,7 @@ export default function AuthBar() {
           <button
             type="button"
             onClick={openModal}
-            className="rounded-lg bg-gradient-to-r from-primary-600 to-rose-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:from-primary-500 hover:to-rose-500 sm:text-sm"
+            className="rounded-lg bg-gradient-to-r from-primary-600 to-amber-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:from-primary-500 hover:to-amber-500 sm:text-sm"
           >
             ログイン / 新規登録
           </button>
@@ -273,7 +273,7 @@ export default function AuthBar() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {authLoading ? "処理中..." : "ログイン"}
                 </button>
