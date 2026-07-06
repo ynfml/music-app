@@ -252,10 +252,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="min-h-full bg-black text-zinc-100 pb-20">
+    <div className="min-h-full bg-transparent text-zinc-100 pb-20">
       {/* ヒーローエリア */}
-      <section className="relative overflow-hidden border-b border-zinc-900/60 bg-gradient-to-b from-zinc-950 to-black pt-16 pb-12 sm:pt-20">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(255,82,0,0.2),transparent)]" aria-hidden />
+      <section className="relative overflow-hidden border-b border-zinc-900/60 bg-gradient-to-b from-zinc-950 to-transparent pt-16 pb-12 sm:pt-20">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(139,92,246,0.15),transparent)]" aria-hidden />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors">

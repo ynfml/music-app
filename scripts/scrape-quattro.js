@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 const { createClient } = require('@supabase/supabase-js');
+const { detectGenre } = require('./utils/genre');
 
 // ==========================================================
 // 1. 環境変数のロード

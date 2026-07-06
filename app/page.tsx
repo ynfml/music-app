@@ -9,8 +9,8 @@ import { TOUR_EVENTS, type TourEvent } from "@/lib/events";
 import CheckInDialog from "@/components/CheckInDialog";
 
 const GENRE_STYLES: Record<Genre, string> = {
-  Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
+  Rock: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -128,14 +128,14 @@ export default function Home() {
 
 
   return (
-    <div className="relative min-h-full overflow-hidden bg-black text-zinc-100">
+    <div className="relative min-h-full overflow-hidden bg-transparent text-zinc-100">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,82,0,0.25),transparent)]"
-        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(139,92,246,0.15),transparent)]"
+        aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(255,140,0,0.12),transparent)]"
-        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(255,82,0,0.15),transparent)]"
+        aria-hidden="true"
       />
 
 
