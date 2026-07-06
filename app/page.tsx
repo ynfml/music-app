@@ -55,6 +55,19 @@ export default function Home() {
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  // 検索・絞り込みステート
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCity, setSelectedCity] = useState("All");
+  const [onlyFestival, setOnlyFestival] = useState(false);
+
+  // イベントデータから動的にエリア（都市）を抽出
+  const cities = useMemo(() => {
+    const allCities = events
+      .map((e) => e.location_city)
+      .filter((c): c is string => Boolean(c));
+    return ["All", ...Array.from(new Set(allCities))];
+  }, [events]);
+
   const handleCheckInSubmit = async (comment: string) => {
     if (activeDialogEvent) {
       await toggleAttendEvent(activeDialogEvent.id, comment);
@@ -76,6 +89,7 @@ export default function Home() {
   const displayEvents = useMemo(() => {
     let filtered = events;
 
+    // 1. ジャンル・保存フィルター
     if (activeGenre === "Saved") {
       filtered = events.filter((event) => savedEventIds.includes(event.id));
     } else if (activeGenre === "Festival") {
@@ -84,8 +98,28 @@ export default function Home() {
       filtered = events.filter((event) => event.genre === activeGenre);
     }
 
+    // 2. キーワード検索 (アーティスト名・会場名)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (event) =>
+          event.artist_name.toLowerCase().includes(q) ||
+          event.venue_name.toLowerCase().includes(q)
+      );
+    }
+
+    // 3. 地域（都市）フィルター
+    if (selectedCity !== "All") {
+      filtered = filtered.filter((event) => event.location_city === selectedCity);
+    }
+
+    // 4. フェスフィルター (トグル)
+    if (onlyFestival) {
+      filtered = filtered.filter((event) => event.is_festival);
+    }
+
     return sortEventsForUser(filtered, profile?.favorite_genres, activeGenre as any);
-  }, [activeGenre, profile?.favorite_genres, events, savedEventIds]);
+  }, [activeGenre, profile?.favorite_genres, events, savedEventIds, searchQuery, selectedCity, onlyFestival]);
 
   const isPersonalized =
     profile?.favorite_genres &&
@@ -172,6 +206,91 @@ export default function Home() {
           </p>
         )}
 
+        {/* 🔍 検索・地域・フェスフィルターコントロール */}
+        <div className="mb-8 rounded-2xl border border-zinc-900 bg-zinc-950/40 p-4 sm:p-5 backdrop-blur-sm space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* キーワード検索入力 */}
+            <div className="relative flex-1">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm select-none">
+                🔍
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="アーティスト、会場名で検索..."
+                className="w-full rounded-xl bg-zinc-900/60 pl-9 pr-8 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 border border-zinc-800/80 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500 hover:text-zinc-300 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            
+            {/* フェストグル */}
+            <div className="flex items-center justify-between sm:justify-start gap-3 px-3.5 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/60">
+              <label htmlFor="festival-toggle" className="text-xs font-semibold text-zinc-400 select-none cursor-pointer">🎪 フェスのみ表示</label>
+              <input
+                id="festival-toggle"
+                type="checkbox"
+                checked={onlyFestival}
+                onChange={(e) => setOnlyFestival(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-850 bg-zinc-900 text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* 都市（地域）絞り込みバッジ一覧 */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">📍 地域で絞り込む</p>
+            <div className="flex flex-wrap gap-1.5">
+              {cities.map((city) => {
+                const isCityActive = selectedCity === city;
+                const label = city === "All" ? "すべてのエリア" : city;
+                return (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => setSelectedCity(city)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                      isCityActive
+                        ? "bg-zinc-100 text-black font-semibold shadow-md"
+                        : "bg-zinc-900/60 text-zinc-400 border border-zinc-800/80 hover:bg-zinc-800 hover:text-zinc-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 件数表示 */}
+          <div className="flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-900/60 pt-3">
+            <span>
+              該当公演: <strong className="text-violet-400 font-bold font-mono">{displayEvents.length}</strong> 件
+            </span>
+            {(searchQuery || selectedCity !== "All" || onlyFestival) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCity("All");
+                  setOnlyFestival(false);
+                }}
+                className="text-violet-400 hover:text-violet-300 font-semibold transition-colors"
+              >
+                フィルターをクリア
+              </button>
+            )}
+          </div>
+        </div>
+
         <section aria-label="来日スケジュール一覧">
           {loading || profileLoading ? (
             <ul className="grid gap-4 sm:grid-cols-2 lg:gap-5">
@@ -192,9 +311,21 @@ export default function Home() {
               ))}
             </ul>
           ) : displayEvents.length === 0 ? (
-            <p className="py-20 text-center text-zinc-500">
-              該当する公演はありません。
-            </p>
+            <div className="py-20 text-center space-y-4">
+              <p className="text-zinc-500 text-sm">該当する公演が見つかりませんでした。</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCity("All");
+                  setOnlyFestival(false);
+                  setActiveGenre("All");
+                }}
+                className="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-violet-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all"
+              >
+                すべてのフィルターをクリア
+              </button>
+            </div>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2 lg:gap-5">
               {displayEvents.map((event) => {
