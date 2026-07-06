@@ -9,7 +9,7 @@ import type { Genre, Profile } from "@/lib/types";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
+  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -99,7 +99,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-zinc-400">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
         <span className="ml-3 text-sm">ユーザー情報を読み込み中...</span>
       </div>
     );
@@ -131,7 +131,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         <header className="mb-10 sm:mb-12 pb-6 border-b border-zinc-900">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div className="space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.35em] text-violet-400">Music Fan Profile</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">Music Fan Profile</span>
               <h1 className="text-3xl font-extrabold text-white sm:text-4xl">
                 {targetProfile.display_name || "名無しの音楽ファン"}
               </h1>
@@ -153,7 +153,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
                   isFollowing
                     ? "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800 hover:bg-red-950/20 hover:text-red-400 hover:ring-red-900/30"
-                    : "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg hover:from-violet-500 hover:to-fuchsia-500"
+                    : "bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg hover:from-primary-500 hover:to-rose-500"
                 }`}
               >
                 {actionLoading ? "処理中..." : isFollowing ? "フォロー中 (解除)" : "フォローする"}
@@ -188,7 +188,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                       <div>
                         <div className="flex flex-wrap gap-1">
                           {event.is_festival && (
-                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
                               Festival
                             </span>
                           )}
@@ -202,7 +202,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         </p>
 
                       </div>
-                      <Link href={`/events/${event.id}`} className="text-xs text-violet-400 hover:text-violet-300 font-semibold pt-1">
+                      <Link href={`/events/${event.id}`} className="text-xs text-primary-400 hover:text-primary-300 font-semibold pt-1">
                         詳細 →
                       </Link>
                     </div>
@@ -227,7 +227,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                       <div>
                         <div className="flex flex-wrap gap-1">
                           {event.is_festival && (
-                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                            <span className="inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
                               Festival
                             </span>
                           )}
@@ -241,7 +241,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                         </p>
 
                       </div>
-                      <Link href={`/events/${event.id}`} className="text-xs text-violet-400 hover:text-violet-300 font-semibold pt-1">
+                      <Link href={`/events/${event.id}`} className="text-xs text-primary-400 hover:text-primary-300 font-semibold pt-1">
                         詳細 →
                       </Link>
                     </div>

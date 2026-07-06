@@ -10,7 +10,7 @@ import CheckInDialog from "@/components/CheckInDialog";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
+  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -142,10 +142,10 @@ export default function Home() {
 
       <main className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 text-center sm:mb-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-violet-400">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">
             MUSIC JOURNEY
           </p>
-          <h1 className="bg-gradient-to-r from-white via-violet-200 to-fuchsia-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
+          <h1 className="bg-gradient-to-r from-white via-primary-200 to-rose-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
             音で繋がる、次のライブへ。
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
@@ -166,7 +166,7 @@ export default function Home() {
                 onClick={() => handleGenreChange(genre)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 ${
                   isActive
-                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/25"
+                    ? "bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg shadow-primary-500/25"
                     : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
                 }`}
               >
@@ -191,7 +191,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(true)}
-                className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 bg-zinc-900/80 text-violet-300 ring-1 ring-violet-500/25 hover:bg-zinc-800 hover:text-violet-200"
+                className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 sm:px-5 sm:py-2.5 flex items-center gap-1.5 bg-zinc-900/80 text-primary-300 ring-1 ring-primary-500/25 hover:bg-zinc-800 hover:text-primary-200"
               >
                 <span>➕</span>
                 公演を新しく登録
@@ -201,7 +201,7 @@ export default function Home() {
         </nav>
 
         {isPersonalized && (
-          <p className="mb-6 text-center text-xs text-violet-400/90 sm:text-sm">
+          <p className="mb-6 text-center text-xs text-primary-400/90 sm:text-sm">
             {profile?.favorite_genres?.join(", ")} ジャンルを優先して表示しています
           </p>
         )}
@@ -219,7 +219,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="アーティスト、会場名で検索..."
-                className="w-full rounded-xl bg-zinc-900/60 pl-9 pr-8 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 border border-zinc-800/80 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-all"
+                className="w-full rounded-xl bg-zinc-900/60 pl-9 pr-8 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 border border-zinc-800/80 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all"
               />
               {searchQuery && (
                 <button
@@ -240,7 +240,7 @@ export default function Home() {
                 type="checkbox"
                 checked={onlyFestival}
                 onChange={(e) => setOnlyFestival(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-850 bg-zinc-900 text-violet-600 focus:ring-violet-500 cursor-pointer"
+                className="h-4 w-4 rounded border-zinc-850 bg-zinc-900 text-primary-600 focus:ring-primary-500 cursor-pointer"
               />
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function Home() {
           {/* 件数表示 */}
           <div className="flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-900/60 pt-3">
             <span>
-              該当公演: <strong className="text-violet-400 font-bold font-mono">{displayEvents.length}</strong> 件
+              該当公演: <strong className="text-primary-400 font-bold font-mono">{displayEvents.length}</strong> 件
             </span>
             {(searchQuery || selectedCity !== "All" || onlyFestival) && (
               <button
@@ -283,7 +283,7 @@ export default function Home() {
                   setSelectedCity("All");
                   setOnlyFestival(false);
                 }}
-                className="text-violet-400 hover:text-violet-300 font-semibold transition-colors"
+                className="text-primary-400 hover:text-primary-300 font-semibold transition-colors"
               >
                 フィルターをクリア
               </button>
@@ -321,7 +321,7 @@ export default function Home() {
                   setOnlyFestival(false);
                   setActiveGenre("All");
                 }}
-                className="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-violet-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all"
+                className="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-primary-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all"
               >
                 すべてのフィルターをクリア
               </button>
@@ -333,9 +333,9 @@ export default function Home() {
                 const isAttended = attendedEventIds.includes(event.id);
                 return (
                   <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-violet-500/40 hover:shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)] sm:p-6">
+                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)] sm:p-6">
                       <div
-                        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+                        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                         aria-hidden
                       />
 
@@ -372,7 +372,7 @@ export default function Home() {
                       <div className="mb-4 pr-24">
                         <div className="flex flex-wrap gap-1.5">
                           {event.is_festival && (
-                            <span className="inline-block rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                            <span className="inline-block rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                               Festival
                             </span>
                           )}
@@ -382,8 +382,17 @@ export default function Home() {
                             {event.genre}
                           </span>
                         </div>
-                        <h2 className="text-xl font-bold tracking-tight text-white mt-1.5 sm:text-2xl">
-                          {event.artist_name}
+                        <h2 className="text-xl font-bold tracking-tight text-white mt-1.5 sm:text-2xl leading-snug">
+                          {event.event_title ? (
+                            <>
+                              <span className="block text-zinc-100 font-extrabold">{event.event_title}</span>
+                              <span className="block text-xs sm:text-sm font-semibold text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
+                                {event.artist_name}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="block line-clamp-2">{event.artist_name}</span>
+                          )}
                         </h2>
                       </div>
 
@@ -406,7 +415,7 @@ export default function Home() {
 
                       <Link
                         href={`/events/${event.id}`}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]"
                       >
                         詳細を見る
                       </Link>
@@ -501,7 +510,7 @@ function CreateEventDialog({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md shrink-0 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-violet-500/10">
+        <div className="w-full max-w-md shrink-0 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-primary-500/10">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-white">新規公演の登録</h2>
@@ -521,7 +530,7 @@ function CreateEventDialog({
                 value={artist}
                 onChange={(e) => setArtist(e.target.value)}
                 placeholder="例: Coldplay / ULTRA JAPAN"
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-primary-500 focus:outline-none"
               />
             </div>
             <div>
@@ -531,7 +540,7 @@ function CreateEventDialog({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-violet-500 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-primary-500 focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -543,7 +552,7 @@ function CreateEventDialog({
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
                   placeholder="例: 東京ドーム"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-primary-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -554,7 +563,7 @@ function CreateEventDialog({
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="例: 東京"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-violet-500 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-primary-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -563,7 +572,7 @@ function CreateEventDialog({
               <select
                 value={genre}
                 onChange={(e) => setGenre(e.target.value as Genre)}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-violet-500 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-2.5 text-sm text-white focus:border-primary-500 focus:outline-none"
               >
                 <option value="Rock">Rock</option>
                 <option value="Pop">Pop</option>
@@ -578,7 +587,7 @@ function CreateEventDialog({
                 id="is_festival"
                 checked={isFestival}
                 onChange={(e) => setIsFestival(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-zinc-950"
+                className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-primary-600 focus:ring-primary-500 focus:ring-offset-zinc-950"
               />
               <label htmlFor="is_festival" className="text-xs font-semibold text-zinc-300 cursor-pointer select-none">
                 これはフェス（Festival）ですか？
@@ -590,7 +599,7 @@ function CreateEventDialog({
             <button
               type="submit"
               disabled={submitting}
-              className="mt-2 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50"
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 disabled:opacity-50"
             >
               {submitting ? "登録中..." : "公演を登録する"}
             </button>
@@ -604,7 +613,7 @@ function CreateEventDialog({
 function CalendarIcon() {
   return (
     <svg
-      className="h-4 w-4 shrink-0 text-violet-400"
+      className="h-4 w-4 shrink-0 text-primary-400"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={1.5}
@@ -623,7 +632,7 @@ function CalendarIcon() {
 function PinIcon() {
   return (
     <svg
-      className="h-4 w-4 shrink-0 text-fuchsia-400"
+      className="h-4 w-4 shrink-0 text-rose-400"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={1.5}

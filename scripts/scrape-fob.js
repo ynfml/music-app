@@ -181,12 +181,15 @@ async function runFobScraper() {
     if (!artistName) continue;
 
     // ツアータイトル
-    const tourTitle = $d('p.tour').text().trim() || "";
+    let tourTitle = $d('p.tour').text().trim() || null;
+    if (tourTitle && (tourTitle.toLowerCase() === artistName.toLowerCase() || tourTitle === "")) {
+      tourTitle = null;
+    }
 
     // 年（Year）の抽出 (メタタグやツアータイトルから)
     let year = new Date().getFullYear();
     const metaDesc = $d('meta[name="description"]').attr('content') || "";
-    const yearMatch = (tourTitle + " " + metaDesc).match(/(2026|2027)年?/);
+    const yearMatch = ((tourTitle || "") + " " + metaDesc).match(/(2026|2027)年?/);
     if (yearMatch) {
       year = parseInt(yearMatch[1], 10);
     }
@@ -226,7 +229,7 @@ async function runFobScraper() {
       if (!priceText || priceText === '-') priceText = null;
 
       const city = detectCity(venueName);
-      const genre = detectGenre(artistName, tourTitle);
+      const genre = detectGenre(artistName, tourTitle || "");
       const lookupKey = `${artistName.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {
@@ -237,7 +240,8 @@ async function runFobScraper() {
           .update({
             ticket_price_info: priceText,
             open_time: openTime,
-            start_time: startTime
+            start_time: startTime,
+            event_title: tourTitle
           })
           .eq('id', id);
         return;
@@ -249,6 +253,7 @@ async function runFobScraper() {
         .from('events')
         .insert([{
           artist_name: artistName,
+          event_title: tourTitle,
           venue_name: venueName,
           location_city: city,
           event_date: formattedDate,

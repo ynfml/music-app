@@ -161,6 +161,12 @@ async function runScraper() {
         return this.type === 'text';
       }).text().trim();
 
+      // サブタイトル（ツアータイトルなど）を event_title として取得
+      let tourTitle = $('.p-jumbotron__sub').text().trim();
+      if (tourTitle && (tourTitle.toLowerCase() === artistName.toLowerCase() || tourTitle === "")) {
+        tourTitle = null;
+      }
+
       if (!artistName) {
         console.log(`⚠️ Skip: Empty artist name in page ${url}`);
         continue;
@@ -190,13 +196,21 @@ async function runScraper() {
           // 重複チェック
           const lookupKey = `${artistName.toLowerCase()}|${venue.toLowerCase()}|${formattedDate}`;
           if (existingKeys.has(lookupKey)) {
-            console.log(`   ⏭️ Skip (Already Exists): ${artistName} @ ${venue} (${formattedDate})`);
+            console.log(`   ⏭️ Updating event_title for: ${artistName} @ ${venue} (${formattedDate})`);
+            supabase
+              .from('events')
+              .update({ event_title: tourTitle })
+              .match({ artist_name: artistName, venue_name: venue, event_date: formattedDate })
+              .then(({ error }) => {
+                if (error) console.error(`      ❌ Update title failed: ${error.message}`);
+              });
             return;
           }
 
           // インサート用のデータオブジェクトを作成
           crawledEvents.push({
             artist_name: artistName,
+            event_title: tourTitle,
             venue_name: venue,
             location_city: city,
             event_date: formattedDate,

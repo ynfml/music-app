@@ -122,7 +122,11 @@ async function runLotsScraper() {
 
     for (const itemEl of items.get()) {
       const performer = $(itemEl).find('p.artist').text().trim().replace(/\s+/g, ' ');
-      const title = $(itemEl).find('p.name').text().trim().replace(/\s+/g, ' ');
+      let title = $(itemEl).find('p.name').text().trim().replace(/\s+/g, ' ');
+
+      if (title.toLowerCase() === performer.toLowerCase() || !title) {
+        title = null;
+      }
 
       if (!performer) continue;
 
@@ -140,7 +144,7 @@ async function runLotsScraper() {
         }
       });
 
-      const genre = detectGenre(performer, title);
+      const genre = detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {
@@ -149,9 +153,10 @@ async function runLotsScraper() {
         await supabase
           .from('events')
           .update({
-            ticket_price_info: null, // リストには料金情報が無い
+            ticket_price_info: null,
             open_time: openTime,
-            start_time: startTime
+            start_time: startTime,
+            event_title: title
           })
           .eq('id', id);
         continue;
@@ -163,6 +168,7 @@ async function runLotsScraper() {
         .from('events')
         .insert([{
           artist_name: performer,
+          event_title: title,
           venue_name: venueName,
           location_city: city,
           event_date: formattedDate,

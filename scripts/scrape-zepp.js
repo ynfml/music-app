@@ -206,7 +206,11 @@ async function runZeppScraperFixed() {
       const year = $(el).find('p.sch-content-date__year').text().trim();
       const monthDay = $(el).find('p.sch-content-date__month').text().trim();
       const performer = $(el).find('h2.sch-content-text__performer').text().trim().replace(/\s+/g, ' ');
-      const title = $(el).find('h3.sch-content-text__ttl').text().trim().replace(/\s+/g, ' ');
+      let title = $(el).find('h3.sch-content-text__ttl').text().trim().replace(/\s+/g, ' ');
+
+      if (title.toLowerCase() === performer.toLowerCase() || !title) {
+        title = null;
+      }
 
       if (!year || !monthDay || !performer) continue;
 
@@ -222,7 +226,7 @@ async function runZeppScraperFixed() {
       priceText = priceText.replace(/\[PRICE\]/i, '').replace(/\s+/g, ' ').trim();
       if (!priceText) priceText = null;
 
-      const genre = detectGenre(performer, title);
+      const genre = detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${hall.name.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {
@@ -233,7 +237,8 @@ async function runZeppScraperFixed() {
           .update({
             ticket_price_info: priceText,
             open_time: openTime,
-            start_time: startTime
+            start_time: startTime,
+            event_title: title
           })
           .eq('id', id);
         
@@ -247,6 +252,7 @@ async function runZeppScraperFixed() {
         .from('events')
         .insert([{
           artist_name: performer,
+          event_title: title,
           venue_name: hall.name,
           location_city: hall.city,
           event_date: formattedDate,

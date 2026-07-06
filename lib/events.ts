@@ -11,6 +11,7 @@ export type TourEvent = {
   ticket_price_info?: string | null;
   open_time?: string | null;
   start_time?: string | null;
+  event_title?: string | null;
 };
 
 export const TOUR_EVENTS: TourEvent[] = [

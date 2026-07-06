@@ -120,8 +120,26 @@ async function runQuattroScraper() {
     // await をループ内で使うため for ... of を使用
     for (const el of $('li.list-item').get()) {
       const dateStr = $(el).attr('data-event-date'); // YYYY-MM-DD
-      const performer = $(el).find('p.txt-01').text().trim().replace(/\s+/g, ' ');
-      const title = $(el).find('p.txt-02').text().trim().replace(/\s+/g, ' ');
+      const txt01 = $(el).find('p.txt-01').text().trim().replace(/\s+/g, ' ');
+      const txt02 = $(el).find('p.txt-02').text().trim().replace(/\s+/g, ' ');
+
+      let performer = txt01;
+      let title = txt02;
+
+      // 賢い分離ロジック: txt02（ツアー名等）が極端に長いか、出演者リスト的なキーワードを含む場合は逆転させる
+      const hasManySeparators = (str) => (str.split(/[\/,、\/]/).length > 2);
+      if (txt02.length > 50 || hasManySeparators(txt02) || txt02.includes('【出演】') || txt02.includes('【Act】')) {
+        performer = txt02;
+        title = txt01;
+      }
+
+      // クレンジング: performer 内の「【出演】」などを除去
+      performer = performer.replace(/【出演】|【Act】|【ACT】|出演：|出演/g, '').trim();
+
+      // タイトルがアーティスト名と同一か空なら null にする
+      if (title.toLowerCase() === performer.toLowerCase() || !title) {
+        title = null;
+      }
 
       if (!dateStr || !performer) continue;
 
@@ -141,7 +159,7 @@ async function runQuattroScraper() {
       let priceText = $(el).find('dl.detail-list dt').filter((_, dt) => $(dt).text().includes('料金')).next('dd').text().trim();
       if (!priceText) priceText = null;
 
-      const genre = detectGenre(performer, title);
+      const genre = detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${shop.name.toLowerCase()}|${dateStr}`;
 
       if (existingMap.has(lookupKey)) {
@@ -152,7 +170,8 @@ async function runQuattroScraper() {
           .update({
             ticket_price_info: priceText,
             open_time: openTime,
-            start_time: startTime
+            start_time: startTime,
+            event_title: title
           })
           .eq('id', id);
         
@@ -166,6 +185,7 @@ async function runQuattroScraper() {
         .from('events')
         .insert([{
           artist_name: performer,
+          event_title: title,
           venue_name: shop.name,
           location_city: shop.city,
           event_date: dateStr,

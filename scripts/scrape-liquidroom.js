@@ -132,6 +132,11 @@ async function runLiquidroomScraper() {
 
     if (!performer) continue;
 
+    // タイトルがアーティスト名と同一か空なら null にする
+    if (title.toLowerCase() === performer.toLowerCase() || !title) {
+      title = null;
+    }
+
     // 開場・開演時間の抽出
     let openTime = null;
     let startTime = null;
@@ -152,7 +157,7 @@ async function runLiquidroomScraper() {
       priceText = advDl.find('dd').text().trim().replace(/\s+/g, ' ');
     }
 
-    const genre = detectGenre(performer, title);
+    const genre = detectGenre(performer, title || "");
     const lookupKey = `${performer.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
     if (existingMap.has(lookupKey)) {
@@ -163,7 +168,8 @@ async function runLiquidroomScraper() {
         .update({
           ticket_price_info: priceText,
           open_time: openTime,
-          start_time: startTime
+          start_time: startTime,
+          event_title: title
         })
         .eq('id', id);
       
@@ -177,6 +183,7 @@ async function runLiquidroomScraper() {
       .from('events')
       .insert([{
         artist_name: performer,
+        event_title: title,
         venue_name: venueName,
         location_city: city,
         event_date: formattedDate,

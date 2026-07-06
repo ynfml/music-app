@@ -57,7 +57,7 @@ export default function CheckInDialog({
       {/* モーダルカード */}
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/90 p-6 shadow-2xl transition-all duration-300">
         {/* 装飾用の光彩 */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-violet-600/10 blur-2xl" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-600/10 blur-2xl" />
 
         {isAttended ? (
           // チェックイン解除モーダル
@@ -104,7 +104,7 @@ export default function CheckInDialog({
                 placeholder="神セトリだった！演出が最高！など、ライブの簡単な感想を書いてみましょう（100文字まで）"
                 maxLength={100}
                 rows={3}
-                className="w-full rounded-xl bg-zinc-900 border border-zinc-850 p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none transition-all"
+                className="w-full rounded-xl bg-zinc-900 border border-zinc-850 p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all"
               />
               <div className="flex justify-end">
                 <span className="text-[10px] text-zinc-600 font-medium">
@@ -125,7 +125,7 @@ export default function CheckInDialog({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg px-5 py-2.5 text-xs font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all"
+                className="rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 text-white shadow-lg px-5 py-2.5 text-xs font-semibold hover:from-primary-500 hover:to-rose-500 transition-all"
               >
                 {isSubmitting ? "登録中..." : "チェックインする"}
               </button>

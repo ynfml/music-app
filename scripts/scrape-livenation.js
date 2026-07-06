@@ -159,7 +159,12 @@ async function runLiveNationScraper() {
     const text = $(el).text().trim().replace(/\s+/g, ' ');
     if (href && href.includes('/all-events/') && text.includes('|')) {
       const artist = cleanArtistName(text);
-      rawConcerts.push({ artist, url: href });
+      const parts = text.split('|');
+      let tourTitle = parts.length >= 2 ? parts[1].trim() : null;
+      if (tourTitle && tourTitle.toLowerCase() === artist.toLowerCase()) {
+        tourTitle = null;
+      }
+      rawConcerts.push({ artist, tourTitle, url: href });
     }
   });
 
@@ -237,7 +242,11 @@ async function runLiveNationScraper() {
         const lookupKey = `${concert.artist.toLowerCase()}|${sched.venue_name.toLowerCase()}|${isoDate}`;
 
         if (existingKeys.has(lookupKey)) {
-          console.log(`   (Already exists): ${concert.artist} @ ${sched.venue_name} on ${isoDate}`);
+          console.log(`   (Already exists, updating title): ${concert.artist} @ ${sched.venue_name} on ${isoDate}`);
+          await supabase
+            .from('events')
+            .update({ event_title: concert.tourTitle })
+            .match({ artist_name: concert.artist, venue_name: sched.venue_name, event_date: isoDate });
           continue;
         }
 
@@ -247,6 +256,7 @@ async function runLiveNationScraper() {
           .from('events')
           .insert({
             artist_name: concert.artist,
+            event_title: concert.tourTitle,
             venue_name: sched.venue_name,
             location_city: city,
             event_date: isoDate,

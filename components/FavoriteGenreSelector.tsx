@@ -44,7 +44,7 @@ export default function FavoriteGenreSelector() {
               : "お気に入りジャンルを選ぶと、公演が優先表示されます（複数選択可）"}
           </p>
           {saving && (
-            <span className="text-xs text-violet-400">保存中...</span>
+            <span className="text-xs text-primary-400">保存中...</span>
           )}
         </div>
 
@@ -59,7 +59,7 @@ export default function FavoriteGenreSelector() {
                 onClick={() => handleToggle(genre)}
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:text-sm ${
                   isActive
-                    ? "bg-violet-600/20 text-violet-300 ring-1 ring-violet-500/40"
+                    ? "bg-primary-600/20 text-primary-300 ring-1 ring-primary-500/40"
                     : "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
                 }`}
               >

@@ -144,6 +144,12 @@ async function runUdoScraper() {
       const detailHtml = await res.text();
       const $detail = cheerio.load(detailHtml);
 
+      // ツアータイトル (例: "FINAL FRONTIER TOUR")
+      let tourTitle = $detail('.s-showsDetail__titleDescription').text().trim() || null;
+      if (tourTitle && (tourTitle.toLowerCase() === show.artist_name.toLowerCase() || tourTitle === "")) {
+        tourTitle = null;
+      }
+
       // 詳細ページのスケジュール項目をパース
       $detail('li.s-showsDetail__scheduleItem').each((_, itemEl) => {
         // 日付 (例: "2026年9月1日")
@@ -161,12 +167,20 @@ async function runUdoScraper() {
           // 重複チェック
           const lookupKey = `${show.artist_name.toLowerCase()}|${venue.toLowerCase()}|${formattedDate}`;
           if (existingKeys.has(lookupKey)) {
-            console.log(`   ⏭️ Skip (Already Exists): ${show.artist_name} @ ${venue} (${formattedDate})`);
+            console.log(`   ⏭️ Updating event_title for: ${show.artist_name} @ ${venue} (${formattedDate})`);
+            supabase
+              .from('events')
+              .update({ event_title: tourTitle })
+              .match({ artist_name: show.artist_name, venue_name: venue, event_date: formattedDate })
+              .then(({ error }) => {
+                if (error) console.error(`      ❌ Update title failed: ${error.message}`);
+              });
             return;
           }
 
           crawledEvents.push({
             artist_name: show.artist_name,
+            event_title: tourTitle,
             venue_name: venue,
             location_city: detectCity(venue),
             event_date: formattedDate,

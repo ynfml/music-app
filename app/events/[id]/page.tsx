@@ -102,7 +102,7 @@ const DEFAULT_CONTENT: DetailedContent = {
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
+  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -266,7 +266,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {event.is_festival && (
-                  <span className="inline-block rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                  <span className="inline-block rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
                     Festival
                   </span>
                 )}
@@ -274,8 +274,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   {event.genre}
                 </span>
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {event.artist_name}
+              <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+                {event.event_title ? (
+                  <>
+                    <span className="block text-zinc-100">{event.event_title}</span>
+                    <span className="block text-lg sm:text-xl font-semibold text-zinc-400 mt-4 leading-relaxed">
+                      出演: {event.artist_name}
+                    </span>
+                  </>
+                ) : (
+                  <span className="block">{event.artist_name}</span>
+                )}
               </h1>
               <p className="text-base text-zinc-400 font-medium sm:text-lg flex flex-wrap items-center gap-x-4 gap-y-1">
                 <span>📅 {formatDate(event.event_date)}</span>
@@ -367,7 +376,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-3">
                 {setlistLoading ? (
                   <div className="flex justify-center py-12 text-zinc-500">
-                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
                     <span className="ml-3 text-xs">セットリスト読み込み中...</span>
                   </div>
                 ) : setlist.length === 0 ? (
@@ -377,7 +386,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     {user ? (
                       <button
                         onClick={() => setIsSetlistDialogOpen(true)}
-                        className="mt-4 rounded-xl bg-violet-600/10 text-violet-400 border border-violet-500/20 px-4 py-2 text-xs font-semibold hover:bg-violet-650/20 transition-all"
+                        className="mt-4 rounded-xl bg-primary-600/10 text-primary-400 border border-primary-500/20 px-4 py-2 text-xs font-semibold hover:bg-primary-650/20 transition-all"
                       >
                         最初の曲を登録する
                       </button>
@@ -393,11 +402,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         className="group/track flex items-center justify-between rounded-xl p-3.5 hover:bg-zinc-900/40 transition-all border border-transparent hover:border-zinc-850"
                       >
                         <div className="flex items-center gap-4 min-w-0 flex-1">
-                          <span className="text-sm font-mono font-bold text-zinc-500 group-hover/track:text-violet-400 transition-colors w-6 text-center">
+                          <span className="text-sm font-mono font-bold text-zinc-500 group-hover/track:text-primary-400 transition-colors w-6 text-center">
                             {track.track_order}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-bold text-white group-hover/track:text-violet-300 transition-colors truncate">
+                            <h4 className="text-sm font-bold text-white group-hover/track:text-primary-300 transition-colors truncate">
                               {track.song_title}
                             </h4>
                             {track.album_name && (
@@ -422,7 +431,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
               {attendeesLoading ? (
                 <div className="flex justify-center py-8 text-zinc-500">
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
                   <span className="ml-3 text-xs">読み込み中...</span>
                 </div>
               ) : attendees.length === 0 ? (
@@ -441,13 +450,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {isCurrentUser ? (
-                              <span className="text-sm font-bold text-violet-300">
+                              <span className="text-sm font-bold text-primary-300">
                                 あなた（{attendee.profiles?.display_name || "名無しの音楽ファン"}）
                               </span>
                             ) : (
                               <Link
                                 href={`/users/${attendee.user_id}`}
-                                className="text-sm font-bold text-zinc-200 hover:text-violet-400 transition-colors"
+                                className="text-sm font-bold text-zinc-200 hover:text-primary-400 transition-colors"
                               >
                                 {attendee.profiles?.display_name || "名無しの音楽ファン"}
                               </Link>
@@ -489,7 +498,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   <>
                     {event.open_time && (
                       <li className="flex gap-4 items-start">
-                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
                           {event.open_time}
                         </span>
                         <span className="text-sm text-zinc-300 pt-0.5">開場 (Doors Open)</span>
@@ -497,7 +506,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     )}
                     {event.start_time && (
                       <li className="flex gap-4 items-start">
-                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
                           {event.start_time}
                         </span>
                         <span className="text-sm text-zinc-300 pt-0.5">開演 (Show Starts)</span>
@@ -507,7 +516,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 ) : (
                   detail.timetable.map((item) => (
                     <li key={item.time} className="flex gap-4 items-start">
-                      <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-violet-400 font-mono tracking-wide">
+                      <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
                         {item.time}
                       </span>
                       <span className="text-sm text-zinc-300 pt-0.5">{item.label}</span>

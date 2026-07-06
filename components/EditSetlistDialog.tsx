@@ -187,7 +187,7 @@ export default function EditSetlistDialog({
                 className="flex items-center justify-between rounded-xl border border-zinc-900 bg-zinc-900/40 p-3 hover:border-zinc-850 hover:bg-zinc-900/60 transition-colors"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                  <span className="text-xs font-mono font-bold text-violet-400 bg-zinc-900 rounded-lg w-7 h-7 flex items-center justify-center">
+                  <span className="text-xs font-mono font-bold text-primary-400 bg-zinc-900 rounded-lg w-7 h-7 flex items-center justify-center">
                     {track.track_order}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -242,18 +242,18 @@ export default function EditSetlistDialog({
               placeholder="曲名 (例: Cruel Summer)"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-violet-500 focus:outline-none transition-colors"
+              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-primary-500 focus:outline-none transition-colors"
             />
             <input
               type="text"
               placeholder="収録アルバム名 (任意)"
               value={newAlbum}
               onChange={(e) => setNewAlbum(e.target.value)}
-              className="sm:w-1/3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-violet-500 focus:outline-none transition-colors"
+              className="sm:w-1/3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-primary-500 focus:outline-none transition-colors"
             />
             <button
               type="submit"
-              className="rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors active:scale-[0.98] shrink-0"
+              className="rounded-xl bg-primary-600 hover:bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors active:scale-[0.98] shrink-0"
             >
               リストに追加
             </button>
@@ -272,7 +272,7 @@ export default function EditSetlistDialog({
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 hover:from-primary-500 hover:to-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <>

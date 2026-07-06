@@ -167,7 +167,7 @@ export default function AuthBar() {
           <button
             type="button"
             onClick={openModal}
-            className="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 sm:text-sm"
+            className="rounded-lg bg-gradient-to-r from-primary-600 to-rose-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:from-primary-500 hover:to-rose-500 sm:text-sm"
           >
             ログイン / 新規登録
           </button>
@@ -186,7 +186,7 @@ export default function AuthBar() {
           >
             <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
               <div
-                className="w-full max-w-md shrink-0 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-violet-500/10"
+                className="w-full max-w-md shrink-0 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-primary-500/10"
                 onClick={(e) => e.stopPropagation()}
               >
             <div className="mb-6 flex items-start justify-between gap-4">
@@ -232,7 +232,7 @@ export default function AuthBar() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                   placeholder="you@example.com"
                 />
               </div>
@@ -252,7 +252,7 @@ export default function AuthBar() {
                   required
                   minLength={6}
                   autoComplete="current-password"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                   placeholder="6文字以上"
                 />
               </div>
@@ -273,7 +273,7 @@ export default function AuthBar() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-primary-600 to-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {authLoading ? "処理中..." : "ログイン"}
                 </button>

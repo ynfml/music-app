@@ -8,7 +8,7 @@ import { TOUR_EVENTS } from "@/lib/events";
 
 const GENRE_STYLES = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
-  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
+  Pop: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -73,7 +73,7 @@ export default function MyPage() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-zinc-400">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
         <span className="ml-3 text-sm">読み込み中...</span>
       </div>
     );
@@ -106,8 +106,8 @@ export default function MyPage() {
 
       <main className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 sm:mb-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-violet-400">My Dashboard</p>
-          <h1 className="bg-gradient-to-r from-white via-violet-200 to-fuchsia-300 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">My Dashboard</p>
+          <h1 className="bg-gradient-to-r from-white via-primary-200 to-rose-300 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
             マイページ
           </h1>
         </header>
@@ -126,11 +126,11 @@ export default function MyPage() {
                 <div className="flex gap-4 pt-2 border-t border-zinc-900">
                   <div>
                     <span className="text-zinc-500 text-xs block">フォロー中</span>
-                    <span className="text-lg font-bold text-violet-400">{followingIds.length}</span>
+                    <span className="text-lg font-bold text-primary-400">{followingIds.length}</span>
                   </div>
                   <div>
                     <span className="text-zinc-500 text-xs block">フォロワー</span>
-                    <span className="text-lg font-bold text-fuchsia-400">{followerIds.length}</span>
+                    <span className="text-lg font-bold text-rose-400">{followerIds.length}</span>
                   </div>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function MyPage() {
                   placeholder="ライブへの意気込みや、好きなアーティストについて自由に書いてみましょう！（150文字程度）"
                   maxLength={200}
                   rows={3}
-                  className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none transition-all"
+                  className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all"
                 />
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-zinc-500 font-medium">
@@ -181,15 +181,15 @@ export default function MyPage() {
                   <li key={recUser.id}>
                     <Link
                       href={`/users/${recUser.id}`}
-                      className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/40 border border-zinc-900 hover:border-violet-500/30 hover:bg-zinc-900/80 transition-all group"
+                      className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/40 border border-zinc-900 hover:border-primary-500/30 hover:bg-zinc-900/80 transition-all group"
                     >
                       <div>
-                        <p className="text-sm font-bold text-white group-hover:text-violet-300 transition-colors">
+                        <p className="text-sm font-bold text-white group-hover:text-primary-300 transition-colors">
                           {recUser.name}
                         </p>
                         <p className="text-[10px] text-zinc-500 mt-0.5">好み: {recUser.genre}</p>
                       </div>
-                      <span className="text-xs text-violet-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                      <span className="text-xs text-primary-400 font-semibold group-hover:translate-x-0.5 transition-transform">
                         覗く →
                       </span>
                     </Link>
@@ -251,7 +251,7 @@ export default function MyPage() {
                   <ul className="grid gap-4 sm:grid-cols-1">
                     {savedEvents.map((event) => (
                       <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-violet-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
+                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
                           
                           {/* 保存解除ボタン */}
                           <button
@@ -268,7 +268,7 @@ export default function MyPage() {
                           <div className="mb-4 pr-10">
                             <div className="flex flex-wrap gap-1.5">
                               {event.is_festival && (
-                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
                                   Festival
                                 </span>
                               )}
@@ -283,11 +283,11 @@ export default function MyPage() {
 
                           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4 text-xs text-zinc-400">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-violet-400">📅</span>
+                              <span className="text-primary-400">📅</span>
                               <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-fuchsia-400">📍</span>
+                              <span className="text-rose-400">📍</span>
                               <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>
@@ -315,7 +315,7 @@ export default function MyPage() {
                   <ul className="grid gap-4 sm:grid-cols-1">
                     {attendedEvents.map((event) => (
                       <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-violet-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
+                        <article className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-850 bg-zinc-950/60 p-4 transition-all duration-300 hover:border-primary-500/30 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.25)] sm:p-5">
                           
                           {/* チェックイン解除ボタン */}
                           <button
@@ -332,7 +332,7 @@ export default function MyPage() {
                           <div className="mb-4 pr-10">
                             <div className="flex flex-wrap gap-1.5">
                               {event.is_festival && (
-                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/30">
+                                <span className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
                                   Festival
                                 </span>
                               )}
@@ -347,11 +347,11 @@ export default function MyPage() {
 
                           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4 text-xs text-zinc-400">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-violet-400">📅</span>
+                              <span className="text-primary-400">📅</span>
                               <time dateTime={event.event_date}>{formatDate(event.event_date)}</time>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-fuchsia-400">📍</span>
+                              <span className="text-rose-400">📍</span>
                               <span>{event.venue_name} ({event.location_city})</span>
                             </div>
                           </div>
