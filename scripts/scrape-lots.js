@@ -145,7 +145,7 @@ async function runLotsScraper() {
         }
       });
 
-      const genre = detectGenre(performer, title || "");
+      const genre = await detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {

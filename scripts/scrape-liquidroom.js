@@ -158,7 +158,7 @@ async function runLiquidroomScraper() {
       priceText = advDl.find('dd').text().trim().replace(/\s+/g, ' ');
     }
 
-    const genre = detectGenre(performer, title || "");
+    const genre = await detectGenre(performer, title || "");
     const lookupKey = `${performer.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
     if (existingMap.has(lookupKey)) {

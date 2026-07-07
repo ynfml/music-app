@@ -63,7 +63,7 @@ async function scrapeClubCitta() {
     }
 
     // ジャンル判定
-    const genre = detectGenre(artistName, eventTitle || title);
+    const genre = await detectGenre(artistName, eventTitle || title);
     
     // 日付フォーマット YYYY-MM-DD
     const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;

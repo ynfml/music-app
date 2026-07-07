@@ -22,7 +22,8 @@ async function runUpdateGenres() {
   console.log(`Found ${events.length} events in database. Checking genres...`);
 
   for (const event of events) {
-    const newGenre = detectGenre(event.artist_name, event.event_title);
+    const newGenre = await detectGenre(event.artist_name, event.event_title);
+    await new Promise(r => setTimeout(r, 100));
     
     if (newGenre !== event.genre) {
       console.log(`   🔄 Updating: ${event.artist_name} [${event.genre} -> ${newGenre}]`);

@@ -215,7 +215,7 @@ async function runScraper() {
             venue_name: venue,
             location_city: city,
             event_date: formattedDate,
-            genre: detectGenre(artistName)
+            genre: await detectGenre(artistName)
           });
           
           console.log(`   ✨ Found New Event: ${artistName} @ ${venue} (${formattedDate})`);

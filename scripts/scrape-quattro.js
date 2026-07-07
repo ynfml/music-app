@@ -160,7 +160,7 @@ async function runQuattroScraper() {
       let priceText = $(el).find('dl.detail-list dt').filter((_, dt) => $(dt).text().includes('料金')).next('dd').text().trim();
       if (!priceText) priceText = null;
 
-      const genre = detectGenre(performer, title || "");
+      const genre = await detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${shop.name.toLowerCase()}|${dateStr}`;
 
       if (existingMap.has(lookupKey)) {

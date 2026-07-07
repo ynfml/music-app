@@ -103,7 +103,7 @@ async function runZeppScraper() {
       const day = dateParts[1].padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
 
-      const genre = detectGenre(performer, title);
+      const genre = await detectGenre(performer, title);
       const lookupKey = `${performer.toLowerCase()}|${hall.name.toLowerCase()}|${formattedDate}`;
 
       if (existingKeys.has(lookupKey)) {
@@ -193,7 +193,7 @@ async function runZeppScraperFixed() {
       priceText = priceText.replace(/\[PRICE\]/i, '').replace(/\s+/g, ' ').trim();
       if (!priceText) priceText = null;
 
-      const genre = detectGenre(performer, title || "");
+      const genre = await detectGenre(performer, title || "");
       const lookupKey = `${performer.toLowerCase()}|${hall.name.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {

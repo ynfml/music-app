@@ -230,7 +230,7 @@ async function runFobScraper() {
       if (!priceText || priceText === '-') priceText = null;
 
       const city = detectCity(venueName);
-      const genre = detectGenre(artistName, tourTitle || "");
+      const genre = await detectGenre(artistName, tourTitle || "");
       const lookupKey = `${artistName.toLowerCase()}|${venueName.toLowerCase()}|${formattedDate}`;
 
       if (existingMap.has(lookupKey)) {
