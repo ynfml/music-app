@@ -103,26 +103,6 @@ export default function AuthBar() {
     );
   }
 
-  async function handleSpotifySignIn() {
-    setAuthLoading(true);
-    setAuthError(null);
-    setAuthMessage(null);
-
-    const supabase = createSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "spotify",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    setAuthLoading(false);
-
-    if (error) {
-      setAuthError(error.message);
-    }
-  }
-
   if (loading) {
 
     return (
@@ -286,27 +266,6 @@ export default function AuthBar() {
                   新規登録
                 </button>
               </div>
-
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-zinc-800" />
-                </div>
-                <div className="relative flex justify-center text-[10px] uppercase">
-                  <span className="bg-zinc-950 px-2 text-zinc-500">または</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={authLoading}
-                onClick={handleSpotifySignIn}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1DB954] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#1ed760] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <svg className="h-4 w-4 fill-white" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.565.387-.86.207-2.377-1.454-5.37-1.783-8.893-1.02-.336.073-.668-.142-.74-.48-.073-.338.143-.67.48-.742 3.856-.88 7.15-.502 9.807 1.125.295.18.387.563.206.86zm1.224-2.72c-.226.367-.707.487-1.074.26-2.72-1.672-6.87-2.157-10.076-1.182-.413.125-.85-.107-.975-.522-.125-.413.107-.85.522-.975 3.666-1.112 8.225-.57 11.343 1.35.367.226.488.708.26 1.07zm.105-2.836C14.7 8.745 9.4 8.57 6.3 9.51a1 1 0 0 1-1.2-1.4c3.6-1.1 9.4-.9 13.5 1.5a1 1 0 0 1-1 1.7z" />
-                </svg>
-                Spotifyでログイン
-              </button>
             </form>
               </div>
             </div>

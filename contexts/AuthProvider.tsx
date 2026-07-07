@@ -17,6 +17,7 @@ import { type TourEvent } from "@/lib/events";
 type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
+  spotifyToken: string | null;
   loading: boolean;
   profileLoading: boolean;
   events: TourEvent[];
@@ -51,7 +52,7 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   const supabase = createSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, favorite_genres, bio")
+    .select("id, display_name, favorite_genres, bio, spotify_access_token, spotify_refresh_token, spotify_token_expires_at")
     .eq("id", userId)
     .maybeSingle();
 
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [attendedComments, setAttendedComments] = useState<Record<string, string>>({});
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [followerIds, setFollowerIds] = useState<string[]>([]);
+  const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
 
@@ -167,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      setSpotifyToken(session?.provider_token ?? null);
       setLoading(false);
     });
 
@@ -174,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setSpotifyToken(session?.provider_token ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -531,6 +535,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       profile,
+      spotifyToken,
       loading,
       profileLoading,
       events,
@@ -553,6 +558,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [
       user,
       profile,
+      spotifyToken,
       loading,
       profileLoading,
       events,

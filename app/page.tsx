@@ -8,6 +8,7 @@ import { GENRE_FILTERS, type Genre, type GenreFilter } from "@/lib/types";
 import { safeStartViewTransition } from "@/lib/transitions";
 import { TOUR_EVENTS, type TourEvent } from "@/lib/events";
 import CheckInDialog from "@/components/CheckInDialog";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
@@ -51,7 +52,7 @@ function sortEventsForUser(
 }
 
 export default function Home() {
-  const { user, profile, loading, profileLoading, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent, createEvent } = useAuth();
+  const { user, profile, loading, profileLoading, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent, createEvent, spotifyToken } = useAuth();
   const [activeGenre, setActiveGenre] = useState<GenreFilter | "Saved">("All");
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -68,6 +69,77 @@ export default function Home() {
       setVisibleCount((prev) => prev + 20);
     }
   }, [inView]);
+
+  // Spotify パーソナライズ機能
+  const [recommendedEvents, setRecommendedEvents] = useState<TourEvent[]>([]);
+  const [topArtists, setTopArtists] = useState<string[]>([]);
+  const [isFetchingSpotify, setIsFetchingSpotify] = useState(false);
+
+  useEffect(() => {
+    if (!profile?.spotify_refresh_token) {
+      setRecommendedEvents([]);
+      return;
+    }
+    const fetchTopArtists = async () => {
+      setIsFetchingSpotify(true);
+      try {
+        let accessToken = profile.spotify_access_token;
+        const expiresAt = profile.spotify_token_expires_at ? new Date(profile.spotify_token_expires_at) : new Date(0);
+        
+        // 期限切れ、または期限が近い（5分以内）なら裏でこっそりリフレッシュ
+        if (!accessToken || expiresAt.getTime() < Date.now() + 5 * 60 * 1000) {
+          const refreshRes = await fetch("/api/spotify/refresh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: profile.spotify_refresh_token }),
+          });
+          
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            accessToken = data.access_token;
+            const newExpiresAt = new Date(Date.now() + data.expires_in * 1000).toISOString();
+            
+            // 次回のためにDBも更新しておく
+            const supabase = createSupabaseClient();
+            await supabase.from("profiles").update({
+              spotify_access_token: accessToken,
+              spotify_token_expires_at: newExpiresAt,
+            }).eq("id", profile.id);
+          } else {
+            throw new Error("Token refresh failed");
+          }
+        }
+
+        const res = await fetch("https://api.spotify.com/v1/me/top/artists?limit=20", {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const topArtistNames = data.items.map((item: any) => item.name);
+          setTopArtists(topArtistNames);
+          
+          // DBのイベントとマッチング
+          const matches = events.filter((e) => topArtistNames.includes(e.artist_name));
+          safeStartViewTransition(() => {
+            setRecommendedEvents(matches);
+          });
+        }
+      } catch (err) {
+        console.error("Spotify API error", err);
+      } finally {
+        setIsFetchingSpotify(false);
+      }
+    };
+    fetchTopArtists();
+  }, [profile?.spotify_refresh_token, profile?.spotify_access_token, profile?.spotify_token_expires_at, profile?.id, events]);
+
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleSpotifyConnect = async () => {
+    setIsConnecting(true);
+    // 新しく作った自前のSpotify接続ルートへ飛ばす
+    window.location.href = "/api/spotify/login";
+  };
 
   // 検索・絞り込みステート
   const [searchQuery, setSearchQuery] = useState("");
@@ -174,6 +246,54 @@ export default function Home() {
             行ったライブを記録して、気になる音楽ファンをフォロー。みんなの音楽ジャーニーを覗いてみよう。
           </p>
         </header>
+
+        {/* あなたへのおすすめ (Spotify連動) */}
+        <section className="mb-12 rounded-2xl border border-[#1DB954]/20 bg-gradient-to-br from-zinc-900/80 to-[#1DB954]/5 p-6 backdrop-blur-sm relative overflow-hidden shadow-2xl shadow-[#1DB954]/5">
+          <div className="absolute -top-4 -right-4 p-4 opacity-5 rotate-12 pointer-events-none">
+            <svg className="w-48 h-48 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15.001 10.62 18.66 12.84c.361.181.54.78.301 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          </div>
+          
+          <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2 relative z-10">
+            <svg className="w-6 h-6 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15.001 10.62 18.66 12.84c.361.181.54.78.301 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            あなたへのおすすめ
+          </h2>
+          
+          <div className="relative z-10">
+            {!user ? (
+              <p className="text-sm text-zinc-400">ログインしてSpotifyと連携すると、あなたのよく聴くアーティストのライブが表示されます。</p>
+            ) : !profile?.spotify_refresh_token ? (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4">
+                <p className="text-sm text-zinc-400 flex-1">Spotifyと連携して、視聴履歴からあなたにピッタリのライブ情報を見つけましょう！</p>
+                <button onClick={handleSpotifyConnect} disabled={isConnecting} className="whitespace-nowrap rounded-full bg-[#1DB954] px-6 py-2.5 text-sm font-bold text-black hover:bg-[#1ed760] hover:scale-105 transition-all shadow-lg shadow-[#1DB954]/20 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
+                  {isConnecting ? "接続中..." : "Spotifyと連携する"}
+                </button>
+              </div>
+            ) : isFetchingSpotify ? (
+              <p className="text-sm text-[#1DB954] animate-pulse font-medium mt-2">あなたのSpotify履歴を分析中...</p>
+            ) : recommendedEvents.length > 0 ? (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {recommendedEvents.slice(0, 3).map(event => (
+                  <Link key={`rec-${event.id}`} href={`/events/${event.id}`} className="group block rounded-xl border border-zinc-800 bg-zinc-950 p-4 hover:border-[#1DB954]/50 transition-colors shadow-sm">
+                    <p className="text-[10px] text-zinc-500 font-bold mb-1 uppercase tracking-wider">Top Artist</p>
+                    <p className="text-lg font-bold text-white group-hover:text-[#1DB954] transition-colors line-clamp-1 mb-1">{event.artist_name}</p>
+                    <p className="text-xs text-primary-400 font-medium mb-1">{formatDate(event.event_date)}</p>
+                    <p className="text-xs text-zinc-400 line-clamp-1">{event.venue_name}</p>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 bg-black/20 p-4 rounded-xl border border-zinc-800/50">
+                <p className="text-sm text-zinc-300">現在、あなたのトップアーティストのライブ予定はアプリ内に登録されていませんでした。</p>
+                {topArtists.length > 0 && (
+                  <div className="mt-3 border-t border-zinc-800/50 pt-3">
+                    <p className="text-xs text-zinc-500 mb-1">✅ Spotifyからのデータ取得は成功しています。あなたのよく聴くアーティスト：</p>
+                    <p className="text-xs font-bold text-[#1DB954]">{topArtists.slice(0, 10).join(" / ")}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
 
         <nav
           className="mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3"

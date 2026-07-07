@@ -10,4 +10,7 @@ export type Profile = {
   display_name: string | null;
   favorite_genres: Genre[] | null;
   bio: string | null;
+  spotify_access_token?: string | null;
+  spotify_refresh_token?: string | null;
+  spotify_token_expires_at?: string | null;
 };
