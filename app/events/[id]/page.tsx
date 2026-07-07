@@ -170,7 +170,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         setArtistList(names);
       } else {
         // 単独アーティストならSpotifyのTop Tracksを取得
-        fetch(`/api/spotify/top-tracks?artist=${encodeURIComponent(getCleanedArtistQuery(name))}`)
+        fetch(`/api/spotify/top-tracks?artist=${encodeURIComponent(name.trim())}`)
           .then(res => res.json())
           .then(data => setSpotifyData(data))
           .catch(err => console.error("Spotify fetch error", err));
@@ -236,7 +236,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           user_id,
           comment,
           created_at,
-          profiles:user_id (
+          profiles (
             display_name,
             favorite_genres
           )
@@ -400,31 +400,51 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               )}
 
               {/* 単独アーティストの場合はSpotifyプレイヤを埋め込み */}
-              {!isMultipleArtists && spotifyData?.tracks?.length > 0 && (
+              {!isMultipleArtists && spotifyData?.artist && (
                 <div className="mt-8 pt-6 border-t border-zinc-900">
                   <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                     <span className="text-[#FF5200]">🎵</span> Top Tracks
                   </h3>
                   <div className="flex flex-col gap-3">
-                    {spotifyData.tracks.map((track: any) => (
+                    {spotifyData.tracks?.length > 0 ? (
+                      spotifyData.tracks.map((track: any) => (
+                        <iframe
+                          key={track.id}
+                          src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                          width="100%"
+                          height="80"
+                          frameBorder="0"
+                          allowFullScreen={false}
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          loading="lazy"
+                          className="rounded-xl border border-white/5 bg-black"
+                        ></iframe>
+                      ))
+                    ) : (
                       <iframe
-                        key={track.id}
-                        src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                        src={`https://open.spotify.com/embed/artist/${spotifyData.artist.id}?utm_source=generator&theme=0`}
                         width="100%"
-                        height="80"
+                        height="352"
                         frameBorder="0"
                         allowFullScreen={false}
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"
-                        className="rounded-xl border border-white/5 bg-black"
+                        className="rounded-xl"
                       ></iframe>
-                    ))}
+                    )}
                   </div>
+                </div>
+              )}
+
+              {/* 他のライブを探すボタン（スワイプ機能への導線） */}
+              {!isMultipleArtists && (
+                <div className="mt-8 pt-6 border-t border-zinc-900">
                   <Link 
-                    href={`/artists/${encodeURIComponent(getCleanedArtistQuery(event?.artist_name || ''))}`}
-                    className="mt-6 inline-flex items-center gap-2 text-sm text-[#FF5200] hover:text-[#FF5200]/80 transition-colors font-semibold"
+                    href={`/artists/${encodeURIComponent(event?.artist_name?.trim() || '')}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-[#FF5200] px-4 py-4 text-sm font-bold text-white shadow-lg shadow-pink-500/20 hover:from-pink-500 hover:to-[#FF5200]/90 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    このアーティストの他のライブを見る（スワイプ検索） →
+                    <span className="text-xl">🔥</span>
+                    他のライブをスワイプで探す
                   </Link>
                 </div>
               )}

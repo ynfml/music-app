@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition, useEffect } from "react";
+import { useInView } from "react-intersection-observer";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
 import { GENRE_FILTERS, type Genre, type GenreFilter } from "@/lib/types";
@@ -55,6 +56,19 @@ export default function Home() {
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  // パフォーマンス最適化のためのステート（無限スクロール＆バックグラウンドレンダリング）
+  const [isPending, startTransition] = useTransition();
+  const [visibleCount, setVisibleCount] = useState(20);
+  const { ref, inView } = useInView({
+    rootMargin: "400px 0px", // 画面下部から400px手前で次をロードする
+  });
+
+  useEffect(() => {
+    if (inView) {
+      setVisibleCount((prev) => prev + 20);
+    }
+  }, [inView]);
+
   // 検索・絞り込みステート
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("All");
@@ -81,10 +95,18 @@ export default function Home() {
   };
 
   const handleGenreChange = (genre: GenreFilter | "Saved") => {
-    safeStartViewTransition(() => {
-      setActiveGenre(genre);
+    startTransition(() => {
+      safeStartViewTransition(() => {
+        setActiveGenre(genre);
+        setVisibleCount(20); // ジャンル変更時は件数をリセット
+      });
     });
   };
+
+  // その他のフィルター変更時も件数をリセットする
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [searchQuery, selectedCity, onlyFestival]);
 
   const displayEvents = useMemo(() => {
     let filtered = events;
@@ -328,12 +350,15 @@ export default function Home() {
             </div>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2 lg:gap-5">
-              {displayEvents.map((event) => {
+              {displayEvents.slice(0, visibleCount).map((event) => {
                 const isSaved = savedEventIds.includes(event.id);
                 const isAttended = attendedEventIds.includes(event.id);
                 return (
                   <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
-                    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(255,82,0,0.35)] sm:p-6">
+                    <article 
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto none auto 250px' }}
+                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(255,82,0,0.35)] sm:p-6"
+                    >
                       <div
                         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                         aria-hidden
@@ -424,6 +449,12 @@ export default function Home() {
                 );
               })}
             </ul>
+          )}
+          {/* 無限スクロールの検知ポイント（まだ読み込んでいないデータがある場合のみ表示） */}
+          {visibleCount < displayEvents.length && (
+            <div ref={ref} className="mt-12 flex justify-center py-6">
+              <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary-500 border-t-transparent opacity-50" />
+            </div>
           )}
         </section>
 

@@ -31,7 +31,8 @@ function SwipeCard({ event, onSwipe, active }: { event: any; onSwipe: (dir: 'lef
     <motion.div
       style={{ x, rotate }}
       drag={active ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
+      dragConstraints={{ left: -1000, right: 1000 }}
+      dragElastic={1}
       onDragEnd={handleDragEnd}
       className={`absolute w-full h-[400px] bg-[#12081d] border border-white/5 rounded-3xl p-6 shadow-2xl flex flex-col justify-between cursor-grab active:cursor-grabbing ${!active && 'pointer-events-none'}`}
       initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -56,7 +57,7 @@ function SwipeCard({ event, onSwipe, active }: { event: any; onSwipe: (dir: 'lef
       <div>
         <div className="flex justify-between items-start mb-4">
           <span className="text-sm font-bold px-3 py-1 bg-white/10 rounded-full text-white/80">
-            {new Date(event.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' })}
+            {new Date(event.event_date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' })}
           </span>
           <span className="text-xs font-bold px-3 py-1 bg-[#FF5200]/20 text-[#FF5200] rounded-full ring-1 ring-[#FF5200]/30">
             {event.genre}
@@ -117,8 +118,8 @@ export default function ArtistPage({ params }: { params: Promise<{ name: string 
         .from('events')
         .select('*')
         .ilike('artist_name', `%${artistName}%`)
-        .gte('date', new Date().toISOString().split('T')[0])
-        .order('date', { ascending: true })
+        .gte('event_date', new Date().toISOString().split('T')[0])
+        .order('event_date', { ascending: true })
         .limit(10);
         
       if (dbEvents) setEvents(dbEvents);
@@ -130,7 +131,7 @@ export default function ArtistPage({ params }: { params: Promise<{ name: string 
   const handleSwipe = async (dir: 'left' | 'right', eventId: string) => {
     if (dir === 'right') {
       // 保存する
-      await toggleSaveEvent(eventId, false); // attended = false
+      await toggleSaveEvent(eventId); // スワイプで保存
     }
     // スワイプされたカードを配列から消す
     setEvents(prev => prev.filter(e => e.id !== eventId));
@@ -206,26 +207,40 @@ export default function ArtistPage({ params }: { params: Promise<{ name: string 
         )}
 
         {/* Top Tracks セクション */}
-        {spotifyData?.tracks && spotifyData.tracks.length > 0 && (
+        {spotifyData?.artist && (
           <div>
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Music className="text-[#FF5200]" size={20} />
               Top Tracks
             </h2>
             <div className="flex flex-col gap-3">
-              {spotifyData.tracks.map((track) => (
-                <div key={track.id} className="w-full h-[80px] rounded-xl overflow-hidden bg-black">
+              {spotifyData.tracks?.length > 0 ? (
+                spotifyData.tracks.map((track: any) => (
+                  <div key={track.id} className="w-full h-[80px] rounded-xl overflow-hidden bg-black border border-white/5">
+                    <iframe
+                      src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allowFullScreen={false}
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                    ></iframe>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full rounded-xl overflow-hidden">
                   <iframe
-                    src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                    src={`https://open.spotify.com/embed/artist/${spotifyData.artist.id}?utm_source=generator&theme=0`}
                     width="100%"
-                    height="80"
+                    height="352"
                     frameBorder="0"
                     allowFullScreen={false}
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
                   ></iframe>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}

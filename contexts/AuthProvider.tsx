@@ -28,6 +28,8 @@ type AuthContextValue = {
   refreshProfile: () => Promise<void>;
   updateFavoriteGenres: (genres: Genre[]) => Promise<{ error: string | null }>;
   updateProfileBio: (bio: string) => Promise<{ error: string | null }>;
+  updateDisplayName: (name: string) => Promise<{ error: string | null }>;
+  uploadAvatar: (file: File) => Promise<{ url: string | null; error: string | null }>;
   toggleSaveEvent: (eventId: string) => Promise<{ error: string | null }>;
   toggleAttendEvent: (eventId: string, comment?: string) => Promise<{ error: string | null }>;
   toggleFollow: (targetUserId: string) => Promise<{ error: string | null }>;
@@ -268,6 +270,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user],
   );
 
+  const updateDisplayName = useCallback(
+    async (name: string) => {
+      if (!user) {
+        return { error: "ログインが必要です" };
+      }
+
+      const supabase = createSupabaseClient();
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        display_name: name,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      safeStartViewTransition(() => {
+        setProfile((prev) =>
+          prev
+            ? { ...prev, display_name: name }
+            : { id: user.id, display_name: name, favorite_genres: null, bio: null }
+        );
+      });
+      return { error: null };
+    },
+    [user],
+  );
+
+  const uploadAvatar = useCallback(
+    async (file: File) => {
+      if (!user) {
+        return { url: null, error: "ログインが必要です" };
+      }
+
+      const supabase = createSupabaseClient();
+      const fileExt = file.name.split('.').pop() || 'png';
+      const fileName = `${user.id}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        return { url: null, error: uploadError.message };
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      return { url: `${data.publicUrl}?t=${Date.now()}`, error: null };
+    },
+    [user],
+  );
+
   const toggleSaveEvent = useCallback(
     async (eventId: string) => {
       if (!user) {
@@ -487,6 +542,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshProfile,
       updateFavoriteGenres,
       updateProfileBio,
+      updateDisplayName,
+      uploadAvatar,
       toggleSaveEvent,
       toggleAttendEvent,
       toggleFollow,
@@ -507,6 +564,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshProfile,
       updateFavoriteGenres,
       updateProfileBio,
+      updateDisplayName,
+      uploadAvatar,
       toggleSaveEvent,
       toggleAttendEvent,
       toggleFollow,

@@ -43,18 +43,29 @@ export default function MyPage() {
     toggleSaveEvent,
     toggleAttendEvent,
     updateProfileBio,
+    updateDisplayName,
+    uploadAvatar,
   } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"saved" | "attended">("saved");
   const [bioInput, setBioInput] = useState("");
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [bioSaveSuccess, setBioSaveSuccess] = useState(false);
+  
+  const [nameInput, setNameInput] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [nameSaveSuccess, setNameSaveSuccess] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    if (profile?.bio) {
-      setBioInput(profile.bio);
+    if (profile?.bio) setBioInput(profile.bio);
+    if (profile?.display_name) setNameInput(profile.display_name);
+    if (user?.id) {
+      // 初期アバターURL（デフォルトはDiceBear）
+      setAvatarUrl(`https://vxxlkbtfiqhzpriplixa.supabase.co/storage/v1/object/public/avatars/${user.id}.png`);
     }
-  }, [profile?.bio]);
+  }, [profile?.bio, profile?.display_name, user?.id]);
 
   const handleBioSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +78,33 @@ export default function MyPage() {
       setTimeout(() => setBioSaveSuccess(false), 3000);
     } else {
       alert("自己紹介の保存に失敗しました: " + error);
+    }
+  };
+
+  const handleNameSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingName(true);
+    setNameSaveSuccess(false);
+    const { error } = await updateDisplayName(nameInput);
+    setIsSavingName(false);
+    if (!error) {
+      setNameSaveSuccess(true);
+      setTimeout(() => setNameSaveSuccess(false), 3000);
+    } else {
+      alert("ユーザー名の保存に失敗しました: " + error);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const { url, error } = await uploadAvatar(file);
+    setIsUploading(false);
+    if (!error && url) {
+      setAvatarUrl(url);
+    } else {
+      alert("画像のアップロードに失敗しました: " + error);
     }
   };
 
@@ -117,7 +155,50 @@ export default function MyPage() {
           <div className="space-y-6 lg:col-span-1">
             <section className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 p-5 backdrop-blur-sm sm:p-6" aria-label="ユーザー情報">
               <h2 className="text-lg font-bold text-white mb-4">アカウント</h2>
-              <div className="space-y-4 text-sm">
+              
+              {/* プロフィール画像 */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative group cursor-pointer w-24 h-24 rounded-full overflow-hidden bg-zinc-900 ring-2 ring-primary-500/50 mb-3 shadow-xl">
+                  <img 
+                    src={avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} 
+                    alt="プロフィール画像" 
+                    onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <span className="text-white text-xs font-bold">{isUploading ? "送信中..." : "変更"}</span>
+                  </div>
+                  <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleAvatarUpload} disabled={isUploading} />
+                </div>
+                <p className="text-zinc-500 text-xs">画像をクリックして変更</p>
+              </div>
+
+              <div className="space-y-4 text-sm border-t border-zinc-900 pt-5">
+                {/* ユーザー名編集 */}
+                <form onSubmit={handleNameSave}>
+                  <label className="text-zinc-500 text-xs block mb-1">ユーザー名</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder="未設定"
+                      className="flex-1 rounded-xl bg-zinc-900 border border-zinc-800 p-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSavingName}
+                      className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                        nameSaveSuccess
+                          ? "bg-emerald-600 text-white"
+                          : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 ring-1 ring-zinc-700"
+                      }`}
+                    >
+                      {isSavingName ? "..." : nameSaveSuccess ? "✓" : "保存"}
+                    </button>
+                  </div>
+                </form>
+
                 <div>
                   <p className="text-zinc-500 text-xs">メールアドレス</p>
                   <p className="text-zinc-200 font-medium break-all">{user.email}</p>

@@ -39,17 +39,26 @@ export async function GET(request: Request) {
 
     // 1. アーティスト名で検索し、Spotify内のアーティストIDを取得
     let query = artist.trim().split(/(\(|（|feat|with)/i)[0].trim();
-    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&limit=1`, {
+    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist&market=JP&limit=5`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
     const searchData = await searchRes.json();
-    const artistData = searchData.artists?.items?.[0];
+    const items = searchData.artists?.items || [];
 
     // アーティストが見つからない場合
-    if (!artistData) {
+    if (items.length === 0) {
       return NextResponse.json({ tracks: [], artist: null });
     }
+
+    // アーティスト名が完全一致するものを優先する（無関係な人気アーティストを除外）
+    const exactMatches = items.filter((item: any) => item.name.toLowerCase() === query.toLowerCase());
+    const candidates = exactMatches.length > 0 ? exactMatches : items;
+
+    // 候補の中から「一番人気（popularityが最も高い）」のアーティストを本物として選ぶ
+    const artistData = candidates.reduce((prev: any, current: any) => {
+      return ((prev.popularity || 0) > (current.popularity || 0)) ? prev : current;
+    });
 
     // 2. アーティストIDを使って、日本市場向けのTop Tracksを取得
     const topTracksRes = await fetch(`https://api.spotify.com/v1/artists/${artistData.id}/top-tracks?market=JP`, {
@@ -57,14 +66,17 @@ export async function GET(request: Request) {
     });
     const topTracksData = await topTracksRes.json();
     
-    // Top 3 の楽曲データを抽出
-    const tracks = (topTracksData.tracks || []).slice(0, 3).map((track: any) => ({
-      id: track.id,
-      name: track.name,
-      preview_url: track.preview_url,
-      album_image: track.album.images[0]?.url,
-      spotify_url: track.external_urls.spotify
-    }));
+    // Top 3 の楽曲データを抽出（エラー時は空配列にする）
+    let tracks = [];
+    if (Array.isArray(topTracksData.tracks)) {
+      tracks = topTracksData.tracks.slice(0, 3).map((track: any) => ({
+        id: track.id,
+        name: track.name,
+        preview_url: track.preview_url,
+        album_image: track.album.images[0]?.url,
+        spotify_url: track.external_urls.spotify
+      }));
+    }
 
     return NextResponse.json({
       artist: {
