@@ -149,6 +149,35 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSetlistDialogOpen, setIsSetlistDialogOpen] = useState(false);
 
+  // Spotifyデータと複数アーティスト判定用のState
+  const [spotifyData, setSpotifyData] = useState<any>(null);
+  const [isMultipleArtists, setIsMultipleArtists] = useState(false);
+  const [artistList, setArtistList] = useState<string[]>([]);
+
+  useEffect(() => {
+    const currentEvent = events.find((e) => e.id === id);
+    if (currentEvent) {
+      const name = currentEvent.artist_name;
+      // 複数アーティストの可能性がある記号やワードで判定
+      const isMulti = /[\/＆&,、・]/.test(name) || /w\/|ゲスト|vs|対バン|GUEST|feat/i.test(name);
+      setIsMultipleArtists(isMulti);
+
+      if (isMulti) {
+        // アーティスト名を分割して配列にする
+        const names = name.split(/[\/＆&,、・]|w\/|ゲスト|vs|対バン|GUEST|feat/i)
+          .map(a => a.trim())
+          .filter(a => a.length > 0 && a !== '他' && a !== 'O.A');
+        setArtistList(names);
+      } else {
+        // 単独アーティストならSpotifyのTop Tracksを取得
+        fetch(`/api/spotify/top-tracks?artist=${encodeURIComponent(getCleanedArtistQuery(name))}`)
+          .then(res => res.json())
+          .then(data => setSpotifyData(data))
+          .catch(err => console.error("Spotify fetch error", err));
+      }
+    }
+  }, [id, events]);
+
   const handleCheckInSubmit = async (comment: string) => {
     if (event) {
       await toggleAttendEvent(event.id, comment);
@@ -350,7 +379,57 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
                 {detail.description}
               </p>
-              <h3 className="text-base font-bold text-zinc-300 pt-4 border-t border-zinc-900">アーティスト解説</h3>
+
+              {/* 複数アーティストの場合はリンク一覧を表示 */}
+              {isMultipleArtists && artistList.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-zinc-900">
+                  <h3 className="text-base font-bold text-white mb-4">出演アーティスト</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {artistList.map((a) => (
+                      <Link 
+                        key={a} 
+                        href={`/artists/${encodeURIComponent(a)}`}
+                        className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:bg-[#FF5200]/10 hover:border-[#FF5200]/30 transition-colors group"
+                      >
+                        <span className="text-sm font-semibold text-zinc-300 truncate group-hover:text-white">{a}</span>
+                        <span className="text-[#FF5200] opacity-50 group-hover:opacity-100 transition-opacity">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 単独アーティストの場合はSpotifyプレイヤを埋め込み */}
+              {!isMultipleArtists && spotifyData?.tracks?.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-zinc-900">
+                  <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <span className="text-[#FF5200]">🎵</span> Top Tracks
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {spotifyData.tracks.map((track: any) => (
+                      <iframe
+                        key={track.id}
+                        src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
+                        width="100%"
+                        height="80"
+                        frameBorder="0"
+                        allowFullScreen={false}
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                        className="rounded-xl border border-white/5 bg-black"
+                      ></iframe>
+                    ))}
+                  </div>
+                  <Link 
+                    href={`/artists/${encodeURIComponent(getCleanedArtistQuery(event?.artist_name || ''))}`}
+                    className="mt-6 inline-flex items-center gap-2 text-sm text-[#FF5200] hover:text-[#FF5200]/80 transition-colors font-semibold"
+                  >
+                    このアーティストの他のライブを見る（スワイプ検索） →
+                  </Link>
+                </div>
+              )}
+
+              <h3 className="text-base font-bold text-zinc-300 pt-6 border-t border-zinc-900 mt-6">アーティスト解説</h3>
               <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
                 {detail.bio}
               </p>
