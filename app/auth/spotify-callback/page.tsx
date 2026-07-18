@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
-export default function SpotifyCallbackPage() {
+function SpotifyCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("Spotifyと連携中...");
@@ -82,5 +82,13 @@ export default function SpotifyCallbackPage() {
         <p className="text-zinc-300 font-bold">{status}</p>
       </div>
     </div>
+  );
+}
+
+export default function SpotifyCallbackPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-black"><p className="text-[#1DB954] font-bold animate-pulse">Loading...</p></div>}>
+      <SpotifyCallbackContent />
+    </Suspense>
   );
 }

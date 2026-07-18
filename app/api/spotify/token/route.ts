@@ -5,8 +5,10 @@ export async function POST(request: Request) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   
-  // 本番環境（デプロイ先）のURLに自動で対応するように修正
-  const origin = request.headers.get("origin") || new URL(request.url).origin;
+  // Vercel等の本番環境でも正確にURLを生成するための処理
+  const protocol = request.headers.get("x-forwarded-proto") || "http";
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const origin = `${protocol}://${host}`;
   const redirectUri = `${origin}/auth/spotify-callback`;
 
   const authOptions = {

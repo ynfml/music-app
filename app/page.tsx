@@ -6,13 +6,15 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
 import { GENRE_FILTERS, type Genre, type GenreFilter } from "@/lib/types";
 import { safeStartViewTransition } from "@/lib/transitions";
-import { TOUR_EVENTS, type TourEvent } from "@/lib/events";
+import { type TourEvent } from "@/lib/events";
 import CheckInDialog from "@/components/CheckInDialog";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+  Alternative: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
   Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
+  Idol: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
@@ -118,8 +120,14 @@ export default function Home() {
           const topArtistNames = data.items.map((item: any) => item.name);
           setTopArtists(topArtistNames);
           
-          // DBのイベントとマッチング
-          const matches = events.filter((e) => topArtistNames.includes(e.artist_name));
+          // DBのイベントとマッチング（表記揺れや大文字小文字の違いに対応するため、部分一致・大文字小文字無視で比較する）
+          const matches = events.filter((e) => 
+            topArtistNames.some((topArtist: string) => {
+              const topLower = topArtist.toLowerCase().trim();
+              const eventLower = e.artist_name.toLowerCase().trim();
+              return eventLower.includes(topLower) || topLower.includes(eventLower);
+            })
+          );
           safeStartViewTransition(() => {
             setRecommendedEvents(matches);
           });

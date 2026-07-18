@@ -1,6 +1,6 @@
-export type Genre = "Rock" | "Pop" | "HipHop" | "EDM";
+export type Genre = "Rock" | "Alternative" | "Pop" | "Idol" | "HipHop" | "EDM";
 
-export const MUSIC_GENRES: Genre[] = ["Rock", "Pop", "HipHop", "EDM"];
+export const MUSIC_GENRES: Genre[] = ["Rock", "Alternative", "Pop", "Idol", "HipHop", "EDM"];
 
 export const GENRE_FILTERS = ["All", ...MUSIC_GENRES, "Festival"] as const;
 export type GenreFilter = (typeof GENRE_FILTERS)[number];

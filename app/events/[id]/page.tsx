@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthProvider";
-import { TOUR_EVENTS } from "@/lib/events";
+
 import type { Genre } from "@/lib/types";
 import CheckInDialog from "@/components/CheckInDialog";
 import EditSetlistDialog from "@/components/EditSetlistDialog";
@@ -102,7 +102,9 @@ const DEFAULT_CONTENT: DetailedContent = {
 
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
+  Alternative: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
   Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
+  Idol: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
 };
