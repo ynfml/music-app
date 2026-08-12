@@ -1,26 +1,20 @@
-const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-
 let accessToken = null;
 let tokenExpiresAt = 0;
-
-// シンプルなインメモリキャッシュ（同じアーティストへの重複リクエストを防ぐ）
 const genreCache = new Map();
 
-/**
- * Spotifyのアクセストークンを取得する（Client Credentials Flow）
- */
 async function getAccessToken() {
   if (accessToken && Date.now() < tokenExpiresAt) {
     return accessToken;
   }
 
-  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
-    console.warn('Spotify Client ID or Secret is missing in environment variables.');
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
     return null;
   }
 
-  const credentials = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   
   try {
     const response = await fetch('https://accounts.spotify.com/api/token', {

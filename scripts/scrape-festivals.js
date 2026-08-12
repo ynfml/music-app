@@ -113,7 +113,8 @@ async function runFestivalScraper() {
   console.log("Fetching existing events from Supabase...");
   const { data: existingEvents, error: fetchError } = await supabase
     .from('events')
-    .select('artist_name, venue_name, event_date');
+    .select('artist_name, venue_name, event_date')
+    .range(0, 50000);
 
   if (fetchError) {
     console.error("❌ Failed to fetch existing events:", fetchError.message);
@@ -130,93 +131,92 @@ async function runFestivalScraper() {
 
   for (let month = 1; month <= 12; month++) {
     const monthStr = String(month).padStart(2, '0');
-    const listUrl = `https://festival-life.com/festival/schedule/2026/26${monthStr}`;
+    let monthTotal = 0;
+
+    for (let page = 1; page <= 10; page++) {
+      const listUrl = page === 1 
+        ? `https://festival-life.com/festival/schedule/2026/26${monthStr}`
+        : `https://festival-life.com/festival/schedule/2026/26${monthStr}/page/${page}`;
+        
+      console.log(`Fetching 2026/${monthStr} (Page ${page}) from: ${listUrl}`);
       
-    console.log(`Fetching festival list for 2026/${monthStr} from: ${listUrl}`);
-    
-    let html;
-    try {
-      const res = await fetch(listUrl);
-      if (!res.ok) {
-        console.log(`   ⚠️ Month 2026/${monthStr} returned status ${res.status}. Skipping.`);
-        continue;
-      }
-      html = await res.text();
-    } catch (err) {
-      console.error(`   ❌ Failed to fetch festival list for month ${monthStr}:`, err.message);
-      continue;
-    }
-
-    const $ = cheerio.load(html);
-    let pageCount = 0;
-
-    // 各フェスカードをループ
-    $('div.card-festival').each((_, cardEl) => {
-      // タイトル (フェス名)
-      const title = $(cardEl).find('h4.entry-title a').text().trim();
-      if (!title) return;
-
-      // 各月ページの中にさらに別の年の情報が混ざるのを防ぐため、タイトルや日程に2026が含まれているか確認
-      // (Festival Lifeは過去記事などを載せることがあるため)
-      if (!title.includes('2026') && !title.includes('’26') && !title.includes('26/27')) {
-        return;
+      let html;
+      try {
+        const res = await fetch(listUrl);
+        if (!res.ok) break;
+        html = await res.text();
+      } catch (err) {
+        console.error(`   ❌ Failed to fetch 2026/${monthStr} Page ${page}:`, err.message);
+        break;
       }
 
-      // 東名阪/動員数上位フェスかどうかのフィルタリング
-      if (!isTargetFestival(title)) {
-        return;
+      const $ = cheerio.load(html);
+      const festivalCards = $('div.card-festival');
+      if (festivalCards.length === 0) {
+        break; // このページのカードが0件なら次の月へ
       }
 
-      // 場所 (例: "京都 立山城総合運動公園...")
-      const placeText = $(cardEl).find('div.fest-place').text().trim();
-      let city = '日本';
-      let venue = placeText;
-      
-      if (placeText) {
-        const parts = placeText.split(/\s+/);
-        if (parts.length >= 2) {
-          city = parts[0];
-          venue = parts.slice(1).join(' ');
+      let pageAdded = 0;
+
+      festivalCards.each((_, cardEl) => {
+        const title = $(cardEl).find('h4.entry-title a').text().trim();
+        if (!title) return;
+
+        // 場所 (例: "京都 立山城総合運動公園...")
+        const placeText = $(cardEl).find('div.fest-place').text().trim();
+        let city = '日本';
+        let venue = placeText;
+        
+        if (placeText) {
+          const parts = placeText.split(/\s+/);
+          if (parts.length >= 2) {
+            city = parts[0];
+            venue = parts.slice(1).join(' ');
+          }
         }
-      }
 
-      // 日程 (例: "2026/07/04(土) - 07/05(日)")
-      const scheduleText = $(cardEl).find('div.fest-schedule').text().trim();
-      if (!scheduleText) return;
+        // 日程 (例: "2026/07/04(土) - 07/05(日)")
+        const scheduleText = $(cardEl).find('div.fest-schedule').text().trim();
+        if (!scheduleText) return;
 
-      // 開始日を正規表現で抽出
-      const dateMatch = scheduleText.match(/^(\d{4}\/\d{1,2}\/\d{1,2})/);
-      if (!dateMatch) return;
+        const dateMatch = scheduleText.match(/^(\d{4}\/\d{1,2}\/\d{1,2})/);
+        if (!dateMatch) return;
 
-      const formattedDate = formatToIsoDate(dateMatch[1]);
-      if (!formattedDate) return;
+        const formattedDate = formatToIsoDate(dateMatch[1]);
+        if (!formattedDate) return;
 
-      // 重複チェック
-      const lookupKey = `${title.toLowerCase()}|${venue.toLowerCase()}|${formattedDate}`;
-      if (existingKeys.has(lookupKey)) {
-        return;
-      }
+        // 重複チェック
+        const lookupKey = `${title.toLowerCase()}|${venue.toLowerCase()}|${formattedDate}`;
+        if (existingKeys.has(lookupKey)) {
+          return;
+        }
 
-      // フェス名から本来の音楽ジャンルを判定
-      const baseGenre = getFestivalGenre(title);
+        const baseGenre = getFestivalGenre(title);
 
-      crawledFestivals.push({
-        artist_name: title,  // eventsテーブルの主キー名にフェス名を割り振る
-        venue_name: venue,
-        location_city: city,
-        event_date: formattedDate,
-        genre: baseGenre,
-        is_festival: true
+        crawledFestivals.push({
+          artist_name: title,
+          venue_name: venue,
+          location_city: city,
+          event_date: formattedDate,
+          genre: baseGenre,
+          is_festival: true
+        });
+
+        existingKeys.add(lookupKey);
+        pageAdded++;
+        monthTotal++;
+        console.log(`   ✨ Found Festival: ${title} @ ${venue} (${formattedDate})`);
       });
 
-      pageCount++;
-      console.log(`   ✨ Found New Festival: ${title} @ ${venue} (${formattedDate})`);
-    });
+      if (pageAdded === 0 && festivalCards.length < 18) {
+        // カードがすでにあるものばかり、かつ全カード数が18未満ならその月は完了
+        break;
+      }
 
-    console.log(`   ℹ️ Month 2026/${monthStr} crawl completed. Added ${pageCount} new festivals.`);
+      await new Promise(resolve => setTimeout(resolve, 400));
+    }
 
-    // サーバー負荷軽減のためウェイトを入れる
-    await new Promise(resolve => setTimeout(resolve, 800));
+    console.log(`   ℹ️ Month 2026/${monthStr} crawl completed. Added ${monthTotal} festivals.`);
   }
 
   // 3-3. データベースへ保存

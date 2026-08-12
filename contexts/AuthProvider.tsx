@@ -82,7 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .order("event_date", { ascending: true });
+      .order("event_date", { ascending: true })
+      .range(0, 50000);
 
     if (error) {
       console.error("Failed to fetch events from DB:", error.message);

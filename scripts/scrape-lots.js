@@ -31,36 +31,8 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ==========================================================
-// 2. ジャンル判定ロジック
-// ==========================================================
-function detectGenre(performer, title) {
-  const text = (performer + " " + title).toLowerCase();
-  
-  const hiphopKeywords = ['hiphop', 'rap', 'rapper', 'ヒップホップ', 'ラップ', 'dj', 'club', 'yzer', 'bad hop'];
-  if (hiphopKeywords.some(keyword => text.includes(keyword))) {
-    // アーティスト名そのものがロックバンドの場合は除外する例外処理
-    const isRockArtist = ['the hiatus', 'monoeyes', 'ellegarden', 'dragon ash', 'sim'].some(band => text.includes(band));
-    if (!isRockArtist) return 'HipHop';
-  }
-  
-  const edmKeywords = ['edm', 'techno', 'house', 'electro', 'dance', 'djs', 'club', 'remix', 'rave', 'vocaloid', 'あらき', '枣いつき'];
-  if (edmKeywords.some(keyword => text.includes(keyword))) {
-    const isRockArtist = ['sim', 'rottengraffty', 'coldrain', 'fear, and loathing in las vegas'].some(band => text.includes(band));
-    if (!isRockArtist) return 'EDM';
-  }
-  
-  const popKeywords = [
-    'pop', 'idol', 'アイドル', 'snb', 'akb', 'ske', 'nmb', 'hkt', 'stu', 'nogizaka', 'keyakizaka', 'sakurazaka', 
-    '乃木坂', '欅坂', '櫻坂', '声優', 'voice actor', 'アニソン', '天月', '手越祐也', '有安杏果', '鈴木愛理',
-    '棗いつき', '枣いつき', '棗', '棗いつき', '枣いつき', '棗', '棗いつき', '棗いつき', '矢井田瞳', 'ソナーポケット'
-  ];
-  if (popKeywords.some(keyword => text.includes(keyword))) {
-    return 'Pop';
-  }
-  
-  return 'Rock'; // デフォルト
-}
+// detectGenre は scripts/utils/genre.js からインポートされたものを使用します
+
 
 // ==========================================================
 // 3. メイン処理

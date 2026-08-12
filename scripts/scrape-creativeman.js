@@ -57,32 +57,8 @@ function formatToIsoDate(dateStr) {
   return `${year}-${month}-${day}`;
 }
 
-// クリエイティブマンのジャンル判別 (アーティスト名やURLからラフに割り振る)
-function detectGenre(artistName) {
-  let name = artistName.toLowerCase();
-  
-  // サブアクト・転換DJ・オープニングアクトなどの表記をクレンジングで排除
-  name = name.replace(/dj\s*[:：]\s*[^\s/、,]+([/、,\s]|$)/g, ' ');
-  name = name.replace(/\(\s*dj\s*\)/g, ' ');
-  name = name.replace(/o\.a\s*[:：]\s*[^\s/、,]+/g, ' ');
-  name = name.replace(/fan\s*club/g, ' ');
-  name = name.replace(/club\s*quattro/g, ' ');
-  name = name.replace(/club\s*tour/g, ' ');
-  
-  // EDM判定
-  const edmRegex = /\b(dj|edm|techno|skrillex)\b|\bclub\b/i;
-  if (edmRegex.test(name) || name.includes('again')) {
-    return 'EDM';
-  }
-  
-  // HipHop判定
-  const hiphopRegex = /\b(rap|hiphop|mc|lamar)\b/i;
-  if (hiphopRegex.test(name)) {
-    return 'HipHop';
-  }
-  
-  return 'Rock'; // デフォルトはRock
-}
+// detectGenre は scripts/utils/genre.js からインポートされたものを使用します
+
 
 // ==========================================================
 // 3. クローラーのメイン処理

@@ -53,9 +53,71 @@ function sortEventsForUser(
   });
 }
 
+function getFestivalOrganizer(title: string, venue: string): string {
+  const upper = (title + " " + venue).toUpperCase();
+  if (upper.includes("ROCK IN JAPAN") || upper.includes("COUNTDOWN JAPAN") || upper.includes("JAPAN JAM")) return "ロッキング・オン・ジャパン";
+  if (upper.includes("SUMMER SONIC") || upper.includes("SONICMANIA") || upper.includes("PUNKSPRING") || upper.includes("LOUD PARK") || upper.includes("SUPERSONIC")) return "クリエイティブマンプロダクション";
+  if (upper.includes("FUJI ROCK") || upper.includes("朝霧")) return "SMASH (スマッシュ)";
+  if (upper.includes("RISING SUN")) return "WESS";
+  if (upper.includes("VIVA LA ROCK")) return "FACT / DISK GARAGE";
+  if (upper.includes("SWEET LOVE SHOWER")) return "スペースシャワーTV / DISK GARAGE";
+  if (upper.includes("ARABAKI")) return "GIP";
+  if (upper.includes("MONSTER BASH")) return "DUKE (デューク)";
+  if (upper.includes("WILD BUNCH")) return "YUMEBANCHI (夢番地)";
+  if (upper.includes("京都大作戦")) return "10-FEET / Sound Creator";
+  if (upper.includes("YON FES")) return "04 Limited Sazabys / サンデーフォーク";
+  if (upper.includes("DEAD POP")) return "SiM / DISK GARAGE";
+  if (upper.includes("MINAMI WHEEL") || upper.includes("RADIO CRAZY")) return "FM802";
+  if (upper.includes("AIR JAM")) return "Hi-STANDARD / DISK GARAGE";
+  if (upper.includes("氣志團万博")) return "氣志團 / DISK GARAGE";
+  if (upper.includes("OTODAMA") || upper.includes("音魂")) return "清水音泉";
+  if (upper.includes("RUSH BALL")) return "GREENS";
+  if (upper.includes("GREENROOM")) return "GREENROOM CO.";
+  if (upper.includes("ULTRA JAPAN")) return "ULTRA JAPAN 実行委員会 / avex";
+  if (upper.includes("A-NATION")) return "avex";
+  if (upper.includes("ベリテン")) return "RADIO BERRY";
+  if (upper.includes("TREASURE05X")) return "サンデーフォークプロモーション";
+  if (upper.includes("GFEST")) return "Gメッセ群馬 / DISK GARAGE";
+  if (upper.includes("TOKYO ISLAND")) return "TOKYO ISLAND 実行委員会";
+  if (upper.includes("京都音楽博覧会")) return "くるり / Bad News";
+  if (upper.includes("風のリズム")) return "FOB企画";
+  if (upper.includes("BLAZE UP NAGASAKI")) return "HEY-SMITH / キョードー西日本";
+  if (upper.includes("NUMBER SHOT")) return "キョードー西日本";
+  return "フェス実行委員会 / プロモーター";
+}
+
+function getFestivalSeason(dateStr: string): { label: string; icon: string; color: string } {
+  const m = parseInt(dateStr.split("-")[1] || "1", 10);
+  if (m >= 3 && m <= 5) return { label: "春フェス", icon: "🌸", color: "bg-pink-500/15 text-pink-300 ring-pink-500/30" };
+  if (m >= 6 && m <= 8) return { label: "夏フェス", icon: "☀️", color: "bg-amber-500/15 text-amber-300 ring-amber-500/30" };
+  if (m >= 9 && m <= 11) return { label: "秋フェス", icon: "🍁", color: "bg-orange-500/15 text-orange-300 ring-orange-500/30" };
+  return { label: "冬フェス", icon: "❄️", color: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30" };
+}
+
+type Region = {
+  id: string;
+  name: string;
+  icon: string;
+  prefectures: string[];
+};
+
+const JAPAN_REGIONS: Region[] = [
+  { id: "All", name: "全国すべて", icon: "🗾", prefectures: [] },
+  { id: "Kanto", name: "関東", icon: "🗼", prefectures: ["東京", "神奈川", "千葉", "埼玉", "群馬", "茨城", "栃木", "山梨"] },
+  { id: "Kansai", name: "関西", icon: "🏯", prefectures: ["大阪", "京都", "兵庫", "滋賀", "奈良", "和歌山"] },
+  { id: "TokaiHokuriku", name: "東海・北陸", icon: "🌊", prefectures: ["愛知", "岐阜", "三重", "静岡", "新潟", "金沢", "福井", "富山", "石川", "長野"] },
+  { id: "TohokuHokkaido", name: "東北・北海道", icon: "🌲", prefectures: ["北海道", "宮城", "仙台", "福島", "山形", "岩手", "秋田", "青森"] },
+  { id: "ChugokuShikoku", name: "中国・四国", icon: "⛩️", prefectures: ["広島", "岡山", "山口", "鳥取", "島根", "香川", "徳島", "愛媛", "高知"] },
+  { id: "KyushuOkinawa", name: "九州・沖縄", icon: "🌴", prefectures: ["福岡", "熊本", "長崎", "大分", "宮崎", "鹿児島", "沖縄"] },
+];
+
 export default function Home() {
   const { user, profile, loading, profileLoading, events, savedEventIds, attendedEventIds, toggleSaveEvent, toggleAttendEvent, createEvent, spotifyToken } = useAuth();
   const [activeGenre, setActiveGenre] = useState<GenreFilter | "Saved">("All");
+  const [activeSeason, setActiveSeason] = useState<string>("All");
+  const [selectedRegion, setSelectedRegion] = useState<string>("All");
+  const [selectedCity, setSelectedCity] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -149,19 +211,6 @@ export default function Home() {
     window.location.href = "/api/spotify/login";
   };
 
-  // 検索・絞り込みステート
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("All");
-  const [onlyFestival, setOnlyFestival] = useState(false);
-
-  // イベントデータから動的にエリア（都市）を抽出
-  const cities = useMemo(() => {
-    const allCities = events
-      .map((e) => e.location_city)
-      .filter((c): c is string => Boolean(c));
-    return ["All", ...Array.from(new Set(allCities))];
-  }, [events]);
-
   const handleCheckInSubmit = async (comment: string) => {
     if (activeDialogEvent) {
       await toggleAttendEvent(activeDialogEvent.id, comment);
@@ -178,50 +227,87 @@ export default function Home() {
     startTransition(() => {
       safeStartViewTransition(() => {
         setActiveGenre(genre);
-        setVisibleCount(20); // ジャンル変更時は件数をリセット
+        setVisibleCount(20);
       });
     });
   };
 
-  // その他のフィルター変更時も件数をリセットする
-  useEffect(() => {
-    setVisibleCount(20);
-  }, [searchQuery, selectedCity, onlyFestival]);
+  // 各地方（リージョン）のライブ件数を動的計算
+  const regionCounts = useMemo(() => {
+    const festEvents = events.filter((e) => e.is_festival);
+    const counts: Record<string, number> = { All: festEvents.length };
+    
+    JAPAN_REGIONS.forEach((reg) => {
+      if (reg.id === "All") return;
+      const cnt = festEvents.filter((e) =>
+        reg.prefectures.some((p) => e.location_city && e.location_city.includes(p))
+      ).length;
+      counts[reg.id] = cnt;
+    });
+    return counts;
+  }, [events]);
+
+  // 選択中地方に含まれる都道府県一覧を抽出
+  const availablePrefecturesInRegion = useMemo(() => {
+    if (selectedRegion === "All") return [];
+    const regObj = JAPAN_REGIONS.find((r) => r.id === selectedRegion);
+    if (!regObj) return [];
+    
+    const festEvents = events.filter((e) => e.is_festival);
+    return regObj.prefectures.filter((p) =>
+      festEvents.some((e) => e.location_city && e.location_city.includes(p))
+    );
+  }, [events, selectedRegion]);
 
   const displayEvents = useMemo(() => {
-    let filtered = events;
+    // 💡 フロントエンドは国内音楽フェス（is_festival: true）に限定
+    let filtered = events.filter((event) => event.is_festival);
 
     // 1. ジャンル・保存フィルター
     if (activeGenre === "Saved") {
-      filtered = events.filter((event) => savedEventIds.includes(event.id));
-    } else if (activeGenre === "Festival") {
-      filtered = events.filter((event) => event.is_festival);
-    } else if (activeGenre !== "All") {
-      filtered = events.filter((event) => event.genre === activeGenre);
+      filtered = filtered.filter((event) => savedEventIds.includes(event.id));
+    } else if (activeGenre !== "All" && activeGenre !== "Festival") {
+      filtered = filtered.filter((event) => event.genre === activeGenre);
     }
 
-    // 2. キーワード検索 (アーティスト名・会場名)
+    // 2. 季節フィルター (春フェス・夏フェス・秋フェス・冬フェス)
+    if (activeSeason !== "All") {
+      filtered = filtered.filter((event) => {
+        const seasonInfo = getFestivalSeason(event.event_date);
+        return seasonInfo.label === activeSeason;
+      });
+    }
+
+    // 3. 地方（リージョン）フィルター
+    if (selectedRegion !== "All") {
+      const regObj = JAPAN_REGIONS.find((r) => r.id === selectedRegion);
+      if (regObj) {
+        filtered = filtered.filter((event) =>
+          regObj.prefectures.some((p) => event.location_city && event.location_city.includes(p))
+        );
+      }
+    }
+
+    // 4. エリア・都道府県フィルター
+    if (selectedCity !== "All") {
+      filtered = filtered.filter((event) => event.location_city && event.location_city.includes(selectedCity));
+    }
+
+    // 5. キーワード検索 (フェス名・会場名・主催者)
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (event) =>
+      filtered = filtered.filter((event) => {
+        const organizer = getFestivalOrganizer(event.artist_name, event.venue_name);
+        return (
           event.artist_name.toLowerCase().includes(q) ||
-          event.venue_name.toLowerCase().includes(q)
-      );
-    }
-
-    // 3. 地域（都市）フィルター
-    if (selectedCity !== "All") {
-      filtered = filtered.filter((event) => event.location_city === selectedCity);
-    }
-
-    // 4. フェスフィルター (トグル)
-    if (onlyFestival) {
-      filtered = filtered.filter((event) => event.is_festival);
+          event.venue_name.toLowerCase().includes(q) ||
+          organizer.toLowerCase().includes(q)
+        );
+      });
     }
 
     return sortEventsForUser(filtered, profile?.favorite_genres, activeGenre as any);
-  }, [activeGenre, profile?.favorite_genres, events, savedEventIds, searchQuery, selectedCity, onlyFestival]);
+  }, [activeGenre, activeSeason, selectedRegion, selectedCity, profile?.favorite_genres, events, savedEventIds, searchQuery]);
 
   const isPersonalized =
     profile?.favorite_genres &&
@@ -244,14 +330,15 @@ export default function Home() {
 
       <main className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 text-center sm:mb-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-primary-400">
-            MUSIC JOURNEY
-          </p>
-          <h1 className="bg-gradient-to-r from-white via-primary-400 to-amber-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
-            音で繋がる、次のライブへ。
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-300 ring-1 ring-amber-500/20 mb-4 shadow-sm">
+            <span>🎪</span> 日本全国の音楽フェス特化ガイド (全497開催)
+          </div>
+          <h1 className="bg-gradient-to-r from-white via-amber-300 to-primary-400 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-6xl leading-tight">
+            JAPAN FESTIVAL JOURNEY
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
-            行ったライブを記録して、気になる音楽ファンをフォロー。みんなの音楽ジャーニーを覗いてみよう。
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base font-medium">
+            日本全国のロックフェス・野外フェス・都市型サーキットを網羅。<br className="hidden sm:block" />
+            季節・エリア・ジャンル・主催者別に探して、行ったフェスを記録しよう。
           </p>
         </header>
 
@@ -356,164 +443,320 @@ export default function Home() {
           </p>
         )}
 
-        {/* 🔍 検索・地域・フェスフィルターコントロール */}
-        <div className="mb-8 rounded-2xl border border-zinc-900 bg-zinc-950/40 p-4 sm:p-5 backdrop-blur-sm space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* キーワード検索入力 */}
-            <div className="relative flex-1">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm select-none">
-                🔍
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="アーティスト、会場名で検索..."
-                className="w-full rounded-xl bg-zinc-900/60 pl-9 pr-8 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 border border-zinc-800/80 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all"
-              />
-              {searchQuery && (
+        {/* 🌸 季節・ジャンルフィルターナビゲーション */}
+        <div className="mb-8 space-y-4">
+          {/* 季節フィルタータブ */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {[
+              { id: "All", label: "すべての季節", icon: "🗓️" },
+              { id: "春フェス", label: "春フェス (3~5月)", icon: "🌸" },
+              { id: "夏フェス", label: "夏フェス (6~8月)", icon: "☀️" },
+              { id: "秋フェス", label: "秋フェス (9~11月)", icon: "🍁" },
+              { id: "冬フェス", label: "冬フェス (12~2月)", icon: "❄️" },
+            ].map((season) => {
+              const isActive = activeSeason === season.id;
+              return (
+                <button
+                  key={season.id}
+                  type="button"
+                  onClick={() => setActiveSeason(season.id)}
+                  className={`rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-gradient-to-r from-amber-500 to-primary-500 text-white shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/50"
+                      : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                  }`}
+                >
+                  <span>{season.icon}</span>
+                  <span>{season.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ジャンルフィルター */}
+          <nav
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+            aria-label="ジャンルフィルター"
+          >
+            {GENRE_FILTERS.filter(g => g !== "Festival").map((genre) => {
+              const isActive = activeGenre === genre;
+              return (
+                <button
+                  key={genre}
+                  type="button"
+                  onClick={() => handleGenreChange(genre)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                    isActive
+                      ? "bg-zinc-100 text-black shadow-md"
+                      : "bg-zinc-900/60 text-zinc-400 ring-1 ring-zinc-800/80 hover:bg-zinc-800 hover:text-zinc-200"
+                  }`}
+                >
+                  {genre === "All" ? "全ジャンル" : genre}
+                </button>
+              );
+            })}
+            {user && (
+              <>
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500 hover:text-zinc-300 text-xs"
+                  onClick={() => handleGenreChange("Saved")}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    activeGenre === "Saved"
+                      ? "bg-pink-600 text-white shadow-md shadow-pink-500/25"
+                      : "bg-zinc-900/60 text-zinc-400 ring-1 ring-zinc-800/80 hover:bg-zinc-800 hover:text-zinc-200"
+                  }`}
                 >
-                  ✕
+                  <SavedIcon />
+                  保存済み ({savedEventIds.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(true)}
+                  className="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 flex items-center gap-1 bg-zinc-900/80 text-amber-300 ring-1 ring-amber-500/30 hover:bg-zinc-800"
+                >
+                  <span>➕</span>
+                  フェスを登録
+                </button>
+              </>
+            )}
+          </nav>
+        </div>
+
+        {/* 🗺️ 検索 ＆ 地方・都道府県エリアフィルターパネル */}
+        <div className="mb-10 rounded-3xl border border-zinc-800/80 bg-zinc-950/80 p-5 sm:p-7 backdrop-blur-xl shadow-2xl space-y-6">
+          {/* キーワード検索入力バー */}
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-base select-none text-amber-400">
+              🔍
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="フェス名、会場名（幕張メッセ、フジロック、お台場など）、主催プロモーターで検索..."
+              className="w-full rounded-2xl bg-zinc-900/90 pl-11 pr-10 py-3.5 text-sm text-zinc-100 placeholder-zinc-500 border border-zinc-800 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all shadow-inner"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-zinc-500 hover:text-zinc-300 text-sm font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* 地方ブロック選択（第1階層: 地方別バッジ） */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📍</span> 開催地方で絞り込む
+              </span>
+              {(selectedRegion !== "All" || selectedCity !== "All") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRegion("All");
+                    setSelectedCity("All");
+                  }}
+                  className="text-xs text-amber-400 hover:underline font-semibold"
+                >
+                  エリア選択をリセット
                 </button>
               )}
             </div>
-            
-            {/* フェストグル */}
-            <div className="flex items-center justify-between sm:justify-start gap-3 px-3.5 py-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/60">
-              <label htmlFor="festival-toggle" className="text-xs font-semibold text-zinc-400 select-none cursor-pointer">🎪 フェスのみ表示</label>
-              <input
-                id="festival-toggle"
-                type="checkbox"
-                checked={onlyFestival}
-                onChange={(e) => setOnlyFestival(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-850 bg-zinc-900 text-primary-600 focus:ring-primary-500 cursor-pointer"
-              />
-            </div>
-          </div>
 
-          {/* 都市（地域）絞り込みバッジ一覧 */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">📍 地域で絞り込む</p>
-            <div className="flex flex-wrap gap-1.5">
-              {cities.map((city) => {
-                const isCityActive = selectedCity === city;
-                const label = city === "All" ? "すべてのエリア" : city;
+            <div className="flex flex-wrap items-center gap-2">
+              {JAPAN_REGIONS.map((reg) => {
+                const isActive = selectedRegion === reg.id;
+                const count = regionCounts[reg.id] || 0;
                 return (
                   <button
-                    key={city}
+                    key={reg.id}
                     type="button"
-                    onClick={() => setSelectedCity(city)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                      isCityActive
-                        ? "bg-zinc-100 text-black font-semibold shadow-md"
-                        : "bg-zinc-900/60 text-zinc-400 border border-zinc-800/80 hover:bg-zinc-800 hover:text-zinc-200"
+                    onClick={() => {
+                      setSelectedRegion(reg.id);
+                      setSelectedCity("All");
+                    }}
+                    className={`rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 border ${
+                      isActive
+                        ? "bg-gradient-to-r from-amber-500 to-primary-500 text-white border-transparent shadow-lg shadow-amber-500/25 scale-[1.02]"
+                        : "bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white"
                     }`}
                   >
-                    {label}
+                    <span>{reg.icon}</span>
+                    <span>{reg.name}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                        isActive ? "bg-black/30 text-white" : "bg-zinc-800 text-zinc-400"
+                      }`}
+                    >
+                      {count}
+                    </span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* 件数表示 */}
-          <div className="flex items-center justify-between text-xs text-zinc-500 border-t border-zinc-900/60 pt-3">
-            <span>
-              該当公演: <strong className="text-primary-400 font-bold font-mono">{displayEvents.length}</strong> 件
-            </span>
-            {(searchQuery || selectedCity !== "All" || onlyFestival) && (
+          {/* 都道府県細分化（第2階層: 選択中地方の都道府県チップ） */}
+          {selectedRegion !== "All" && availablePrefecturesInRegion.length > 0 && (
+            <div className="pt-4 border-t border-zinc-900/90 space-y-2 animate-fadeIn">
+              <span className="text-[11px] font-semibold text-zinc-400 block">
+                【{JAPAN_REGIONS.find((r) => r.id === selectedRegion)?.name}】内の都道府県・エリア細分化:
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCity("All")}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                    selectedCity === "All"
+                      ? "bg-zinc-100 text-black shadow"
+                      : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                  }`}
+                >
+                  📍 {JAPAN_REGIONS.find((r) => r.id === selectedRegion)?.name} 全域
+                </button>
+                {availablePrefecturesInRegion.map((pref) => {
+                  const isCityActive = selectedCity === pref;
+                  return (
+                    <button
+                      key={pref}
+                      type="button"
+                      onClick={() => setSelectedCity(pref)}
+                      className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                        isCityActive
+                          ? "bg-amber-400 text-black shadow-md shadow-amber-500/20"
+                          : "bg-zinc-900 text-zinc-300 border border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                      }`}
+                    >
+                      📍 {pref}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 件数表示 ＆ アクティブフィルター表示 */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400 border-t border-zinc-900/80 pt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                該当フェス: <strong className="text-amber-400 font-bold font-mono text-sm">{displayEvents.length}</strong> 開催
+              </span>
+              {activeSeason !== "All" && (
+                <span className="rounded-full bg-amber-500/10 text-amber-300 px-3 py-0.5 text-[11px] font-semibold border border-amber-500/20">
+                  季節: {activeSeason}
+                </span>
+              )}
+              {selectedCity !== "All" && (
+                <span className="rounded-full bg-primary-500/10 text-primary-300 px-3 py-0.5 text-[11px] font-semibold border border-primary-500/20">
+                  エリア: {selectedCity}
+                </span>
+              )}
+            </div>
+
+            {(searchQuery || selectedCity !== "All" || activeSeason !== "All" || activeGenre !== "All") && (
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCity("All");
-                  setOnlyFestival(false);
+                  setActiveSeason("All");
+                  setActiveGenre("All");
                 }}
-                className="text-primary-400 hover:text-primary-300 font-semibold transition-colors"
+                className="text-amber-400 hover:text-amber-300 font-semibold transition-colors flex items-center gap-1"
               >
-                フィルターをクリア
+                <span>✕</span> フィルターをクリア
               </button>
             )}
           </div>
         </div>
 
-        <section aria-label="来日スケジュール一覧">
+        <section aria-label="全国音楽フェススケジュール一覧">
           {loading || profileLoading ? (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+            <ul className="grid gap-6 sm:grid-cols-2 lg:gap-8">
               {[1, 2, 3, 4].map((i) => (
                 <li key={i}>
-                  <div className="animate-pulse rounded-2xl border border-zinc-800/80 bg-zinc-950/40 p-5 backdrop-blur-sm sm:p-6 h-[200px] flex flex-col justify-between">
-                    <div>
-                      <div className="h-6 w-2/3 rounded bg-zinc-900/80 mb-3" />
-                      <div className="h-4 w-1/4 rounded bg-zinc-900/80" />
+                  <div className="animate-pulse rounded-3xl border border-zinc-800/80 bg-zinc-950/40 p-6 sm:p-7 backdrop-blur-sm h-[240px] flex flex-col justify-between">
+                    <div className="flex gap-4">
+                      <div className="h-16 w-16 rounded-2xl bg-zinc-900/80 shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-6 w-3/4 rounded-lg bg-zinc-900/80" />
+                        <div className="h-4 w-1/2 rounded-lg bg-zinc-900/80" />
+                      </div>
                     </div>
-                    <div className="space-y-2.5">
-                      <div className="h-4 w-1/2 rounded bg-zinc-800/80" />
-                      <div className="h-4 w-1/3 rounded bg-zinc-800/80" />
-                    </div>
-                    <div className="h-10 w-full rounded-xl bg-zinc-800/40 mt-4" />
+                    <div className="h-11 w-full rounded-2xl bg-zinc-800/40 mt-4" />
                   </div>
                 </li>
               ))}
             </ul>
           ) : displayEvents.length === 0 ? (
-            <div className="py-20 text-center space-y-4">
-              <p className="text-zinc-500 text-sm">該当する公演が見つかりませんでした。</p>
+            <div className="py-24 text-center space-y-5 rounded-3xl border border-zinc-900 bg-zinc-950/30">
+              <p className="text-zinc-400 text-base">条件に該当する音楽フェスが見つかりませんでした。</p>
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCity("All");
-                  setOnlyFestival(false);
+                  setActiveSeason("All");
                   setActiveGenre("All");
                 }}
-                className="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-primary-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all"
+                className="rounded-full bg-zinc-900 px-6 py-3 text-xs font-semibold text-amber-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-lg"
               >
                 すべてのフィルターをクリア
               </button>
             </div>
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+            <ul className="grid gap-6 sm:grid-cols-2 lg:gap-8">
               {displayEvents.slice(0, visibleCount).map((event) => {
                 const isSaved = savedEventIds.includes(event.id);
                 const isAttended = attendedEventIds.includes(event.id);
+                
+                // 日付パース
+                const eventDateObj = new Date(`${event.event_date}T00:00:00`);
+                const monthText = `${eventDateObj.getMonth() + 1}月`;
+                const dayText = `${eventDateObj.getDate()}`;
+                const weekdayText = ["日", "月", "火", "水", "木", "金", "土"][eventDateObj.getDay()];
+
+                // 主催者 ＆ 季節の自動判定
+                const organizer = getFestivalOrganizer(event.artist_name, event.venue_name);
+                const seasonInfo = getFestivalSeason(event.event_date);
+
                 return (
                   <li key={event.id} style={{ viewTransitionName: `event-${event.id}` } as any}>
                     <article 
-                      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto none auto 250px' }}
-                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5 backdrop-blur-sm transition-all duration-300 hover:border-primary-500/40 hover:shadow-[0_0_40px_-12px_rgba(255,82,0,0.35)] sm:p-6"
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto none auto 280px' }}
+                      className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-800/80 bg-zinc-950/70 p-6 backdrop-blur-md transition-all duration-300 hover:border-amber-500/40 hover:shadow-[0_0_50px_-15px_rgba(245,158,11,0.25)] sm:p-7"
                     >
                       <div
-                        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+                        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                         aria-hidden
                       />
 
                       {/* アクションボタン（行った ＆ 行きたい） */}
                       {user && (
-                        <div className="absolute right-4 top-4 z-20 flex gap-2">
+                        <div className="absolute right-5 top-5 z-20 flex gap-2">
                           <button
                             type="button"
                             onClick={() => setActiveDialogEvent({ id: event.id, artist: event.artist_name, isAttended })}
-                            className={`rounded-full p-2 transition-all hover:bg-zinc-900 ${
+                            className={`rounded-full p-2.5 transition-all hover:bg-zinc-900/90 ${
                               isAttended
-                                ? "text-emerald-400 shadow-md shadow-emerald-500/10"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                ? "text-emerald-400 shadow-lg shadow-emerald-500/20 bg-emerald-950/40 ring-1 ring-emerald-500/30"
+                                : "text-zinc-500 hover:text-zinc-300 bg-zinc-900/40"
                             }`}
-                            title={isAttended ? "行ったリストから削除" : "行った公演にチェックイン"}
+                            title={isAttended ? "行ったリストから削除" : "行ったフェスにチェックイン"}
                           >
                             <CheckIcon solid={isAttended} />
                           </button>
                           <button
                             type="button"
                             onClick={() => toggleSaveEvent(event.id)}
-                            className={`rounded-full p-2 transition-all hover:bg-zinc-900 ${
+                            className={`rounded-full p-2.5 transition-all hover:bg-zinc-900/90 ${
                               isSaved
-                                ? "text-pink-500 shadow-md shadow-pink-500/10"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                ? "text-pink-500 shadow-lg shadow-pink-500/20 bg-pink-950/40 ring-1 ring-pink-500/30"
+                                : "text-zinc-500 hover:text-zinc-300 bg-zinc-900/40"
                             }`}
                             title={isSaved ? "お気に入りから削除" : "お気に入りに追加"}
                           >
@@ -522,55 +765,65 @@ export default function Home() {
                         </div>
                       )}
 
-                      <div className="mb-4 pr-24">
-                        <div className="flex flex-wrap gap-1.5">
-                          {event.is_festival && (
-                            <span className="inline-block rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                              Festival
-                            </span>
-                          )}
-                          <span
-                            className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}
-                          >
-                            {event.genre}
-                          </span>
-                        </div>
-                        <h2 className="text-xl font-bold tracking-tight text-white mt-1.5 sm:text-2xl leading-snug">
-                          {event.event_title ? (
-                            <>
-                              <span className="block text-zinc-100 font-extrabold">{event.event_title}</span>
-                              <span className="block text-xs sm:text-sm font-semibold text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
-                                {event.artist_name}
+                      <div>
+                        {/* 日付バッジ ＆ タイトルヘッダー */}
+                        <div className="flex items-start gap-4 mb-5 pr-20">
+                          {/* 🗓️ 視覚的な日付スタンプバッジ */}
+                          <div className="flex flex-col items-center justify-center rounded-2xl bg-zinc-900/90 border border-zinc-800/90 px-3.5 py-2.5 min-w-[64px] shrink-0 text-center shadow-inner group-hover:border-amber-500/40 transition-colors">
+                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest leading-none mb-1">{monthText}</span>
+                            <span className="text-2xl font-black text-white leading-none tracking-tight">{dayText}</span>
+                            <span className="text-[10px] font-semibold text-zinc-500 leading-none mt-1">({weekdayText})</span>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${seasonInfo.color}`}>
+                                {seasonInfo.icon} {seasonInfo.label}
                               </span>
-                            </>
-                          ) : (
-                            <span className="block line-clamp-2">{event.artist_name}</span>
+                              <span
+                                className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${GENRE_STYLES[event.genre]}`}
+                              >
+                                {event.genre}
+                              </span>
+                            </div>
+
+                            <h2 className="text-lg font-black tracking-tight text-white sm:text-xl leading-snug">
+                              {event.artist_name}
+                            </h2>
+                          </div>
+                        </div>
+
+                        {/* 主催者・会場・都市 */}
+                        <div className="mb-6 space-y-2.5 text-xs sm:text-sm text-zinc-400 bg-zinc-900/40 rounded-2xl p-4 border border-zinc-900/80">
+                          {/* 🏢 主催・プロモーター */}
+                          <div className="flex items-center gap-2.5 text-amber-300/90 font-semibold text-xs">
+                            <span>🏢</span>
+                            <span className="truncate">主催: <strong className="text-zinc-200 font-bold">{organizer}</strong></span>
+                          </div>
+
+                          {/* 📍 会場 ＆ エリア */}
+                          <div className="flex items-center gap-2.5 text-zinc-200 font-medium">
+                            <PinIcon />
+                            <span className="truncate">
+                              <strong className="text-white font-semibold">{event.venue_name}</strong>
+                              <span className="text-zinc-400 font-normal"> · {event.location_city}</span>
+                            </span>
+                          </div>
+
+                          {event.ticket_price_info && (
+                            <div className="text-xs text-zinc-400 pt-2 border-t border-zinc-800/40 flex items-center gap-2">
+                              <span>🎫</span>
+                              <span>{event.ticket_price_info}</span>
+                            </div>
                           )}
-                        </h2>
-                      </div>
-
-                      <div className="mb-6 flex flex-1 flex-col gap-3 text-sm text-zinc-400">
-                        <div className="flex items-center gap-2.5">
-                          <CalendarIcon />
-                          <time dateTime={event.event_date} className="text-zinc-200">
-                            {formatDate(event.event_date)}
-                          </time>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <PinIcon />
-                          <span>
-                            <span className="text-zinc-200">{event.venue_name}</span>
-                            <span className="text-zinc-500"> · {event.location_city}</span>
-                          </span>
                         </div>
                       </div>
-
 
                       <Link
                         href={`/events/${event.id}`}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-amber-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:from-primary-500 hover:to-amber-500 hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-3 text-xs sm:text-sm font-bold text-white transition-all duration-200 hover:bg-gradient-to-r hover:from-amber-500 hover:to-primary-500 hover:shadow-xl hover:shadow-amber-500/20 active:scale-[0.98] border border-zinc-800 hover:border-transparent"
                       >
-                        詳細を見る
+                        フェスの詳細を見る ➔
                       </Link>
                     </article>
                   </li>

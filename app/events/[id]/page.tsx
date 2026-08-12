@@ -9,101 +9,51 @@ import type { Genre } from "@/lib/types";
 import CheckInDialog from "@/components/CheckInDialog";
 import EditSetlistDialog from "@/components/EditSetlistDialog";
 
-// 各イベントIDに応じた詳細なダミーコンテンツ
-type DetailedContent = {
-  description: string;
-  ticketInfo: { type: string; price: string }[];
-  timetable: { time: string; label: string }[];
-  tracks: { title: string; duration: string; plays: string }[];
-  bio: string;
-};
+function getFestivalOrganizer(title: string, venue: string): string {
+  const upper = (title + " " + venue).toUpperCase();
+  if (upper.includes("ROCK IN JAPAN") || upper.includes("COUNTDOWN JAPAN") || upper.includes("JAPAN JAM")) return "ロッキング・オン・ジャパン";
+  if (upper.includes("SUMMER SONIC") || upper.includes("SONICMANIA") || upper.includes("PUNKSPRING") || upper.includes("LOUD PARK") || upper.includes("SUPERSONIC")) return "クリエイティブマンプロダクション";
+  if (upper.includes("FUJI ROCK") || upper.includes("朝霧")) return "SMASH (スマッシュ)";
+  if (upper.includes("RISING SUN")) return "WESS";
+  if (upper.includes("VIVA LA ROCK")) return "FACT / DISK GARAGE";
+  if (upper.includes("SWEET LOVE SHOWER")) return "スペースシャワーTV / DISK GARAGE";
+  if (upper.includes("ARABAKI")) return "GIP";
+  if (upper.includes("MONSTER BASH")) return "DUKE (デューク)";
+  if (upper.includes("WILD BUNCH")) return "YUMEBANCHI (夢番地)";
+  if (upper.includes("京都大作戦")) return "10-FEET / Sound Creator";
+  if (upper.includes("YON FES")) return "04 Limited Sazabys / サンデーフォーク";
+  if (upper.includes("DEAD POP")) return "SiM / DISK GARAGE";
+  if (upper.includes("MINAMI WHEEL") || upper.includes("RADIO CRAZY")) return "FM802";
+  if (upper.includes("AIR JAM")) return "Hi-STANDARD / DISK GARAGE";
+  if (upper.includes("氣志團万博")) return "氣志團 / DISK GARAGE";
+  if (upper.includes("OTODAMA") || upper.includes("音魂")) return "清水音泉";
+  if (upper.includes("RUSH BALL")) return "GREENS";
+  if (upper.includes("GREENROOM")) return "GREENROOM CO.";
+  if (upper.includes("ULTRA JAPAN")) return "ULTRA JAPAN 実行委員会 / avex";
+  if (upper.includes("A-NATION")) return "avex";
+  if (upper.includes("ベリテン")) return "RADIO BERRY";
+  if (upper.includes("TREASURE05X")) return "サンデーフォークプロモーション";
+  if (upper.includes("GFEST")) return "Gメッセ群馬 / DISK GARAGE";
+  if (upper.includes("TOKYO ISLAND")) return "TOKYO ISLAND 実行委員会";
+  if (upper.includes("京都音楽博覧会")) return "くるり / Bad News";
+  if (upper.includes("風のリズム")) return "FOB企画";
+  if (upper.includes("BLAZE UP NAGASAKI")) return "HEY-SMITH / キョードー西日本";
+  if (upper.includes("NUMBER SHOT")) return "キョードー西日本";
+  return "フェス実行委員会 / プロモーター";
+}
 
-const DETAILED_CONTENTS: Record<string, DetailedContent> = {
-  "1": {
-    description: "世界的ポップアイコン、テイラー・スウィフトの歴史的ワールドツアー『THE ERAS TOUR』がついに日本上陸！これまでの彼女の音楽キャリアにおける『時代（エラ）』を網羅する、3時間を超える圧巻のステージをお見逃しなく。",
-    ticketInfo: [
-      { type: "SS席", price: "¥30,000" },
-      { type: "S席", price: "¥22,800" },
-      { type: "A席", price: "¥18,800" },
-      { type: "U-20チケット", price: "¥10,000" },
-    ],
-    timetable: [
-      { time: "16:00", label: "開場 (Doors Open)" },
-      { time: "18:00", label: "開演 (Show Starts)" },
-      { time: "21:30", label: "終演予定 (Show Ends)" },
-    ],
-    tracks: [
-      { title: "Cruel Summer", duration: "2:58", plays: "2.4B" },
-      { title: "Anti-Hero", duration: "3:20", plays: "1.8B" },
-      { title: "Blank Space", duration: "3:51", plays: "1.5B" },
-    ],
-    bio: "グラミー賞を何度も受賞し、世界的シンガーソングライターとして音楽界の歴史を塗り替え続ける時代の開拓者。ファンとの強い絆が生み出す一体感のあるライブは、世界中でプレミアチケットとなっています。",
-  },
-  "2": {
-    description: "現代のR&B/ポップス界を代表するカリスマ、ザ・ウィークエンドの待望の単独来日公演！最新アルバムを引っ提げ、巨大なLEDビジュアルと幻想的な照明、そして彼の透き通るようなハイトーンボイスで会場全体を包み込みます。",
-    ticketInfo: [
-      { type: "アリーナVIP席", price: "¥35,000" },
-      { type: "S指定席", price: "¥18,000" },
-      { type: "A指定席", price: "¥15,000" },
-    ],
-    timetable: [
-      { time: "17:30", label: "開場 (Doors Open)" },
-      { time: "19:00", label: "開演 (Show Starts)" },
-      { time: "21:00", label: "終演予定 (Show Ends)" },
-    ],
-    tracks: [
-      { title: "Blinding Lights", duration: "3:20", plays: "4.1B" },
-      { title: "Save Your Tears", duration: "3:35", plays: "2.2B" },
-      { title: "Starboy", duration: "3:50", plays: "3.1B" },
-    ],
-    bio: "カナダ出身のシンガーソングライター。数々の全米1位ヒットを放ち、グラミー賞やスーパーボウルのハーフタイムショー出演など、音楽シーンの頂点に君臨する天才アーティスト。",
-  },
-  "3": {
-    description: "ヘヴィメタルの帝王メタリカ、数年ぶりとなる奇跡の来日！最新アルバム『72 Seasons』の世界観を表現した巨大円形ステージでの超重量級パフォーマンス。激しいリフと圧巻のグルーヴを全身で体感せよ。",
-    ticketInfo: [
-      { type: "GOLD スタンディング", price: "¥25,000" },
-      { type: "S指定席", price: "¥18,500" },
-      { type: "A指定席", price: "¥15,000" },
-    ],
-    timetable: [
-      { time: "16:30", label: "開場 (Doors Open)" },
-      { time: "18:30", label: "開演 (Show Starts)" },
-      { time: "21:00", label: "終演予定 (Show Ends)" },
-    ],
-    tracks: [
-      { title: "Enter Sandman", duration: "5:31", plays: "1.2B" },
-      { title: "Master of Puppets", duration: "8:35", plays: "980M" },
-      { title: "Lux Æterna", duration: "3:25", plays: "85M" },
-    ],
-    bio: "1981年に結成され、全世界で1億2000万枚以上のアルバム売上を誇るモンスターバンド。今なお最前線で激しい音を鳴らし続け、メタルというジャンルを超えて支持される伝説のバンドです。",
-  },
-};
-
-// デフォルトのコンテンツ（定義されていないイベントID用）
-const DEFAULT_CONTENT: DetailedContent = {
-  description: "世界中のアリーナやスタジアムを沸かせるトップアーティストがついに日本へ！彼らの魂を揺さぶるライブパフォーマンスを至近距離で目撃する一生に一度のチャンス。",
-  ticketInfo: [
-    { type: "S指定席", price: "¥18,000" },
-    { type: "A指定席", price: "¥14,000" },
-    { type: "B指定席", price: "¥10,000" },
-  ],
-  timetable: [
-    { time: "17:00", label: "開場 (Doors Open)" },
-    { time: "18:30", label: "開演 (Show Starts)" },
-    { time: "20:30", label: "終演予定 (Show Ends)" },
-  ],
-  tracks: [
-    { title: "Popular Song #1", duration: "3:15", plays: "150M" },
-    { title: "Popular Song #2", duration: "2:45", plays: "90M" },
-    { title: "New Single Release", duration: "3:30", plays: "45M" },
-  ],
-  bio: "世界的なヒット曲を多数持ち、革新的なライブ演出で知られるトップアーティスト。日本国内の音楽ファン待望のツアーがいよいよ開幕します。",
-};
+function getFestivalSeason(dateStr: string): { label: string; icon: string; color: string } {
+  const m = parseInt(dateStr.split("-")[1] || "1", 10);
+  if (m >= 3 && m <= 5) return { label: "春フェス", icon: "🌸", color: "bg-pink-500/15 text-pink-300 ring-pink-500/30" };
+  if (m >= 6 && m <= 8) return { label: "夏フェス", icon: "☀️", color: "bg-amber-500/15 text-amber-300 ring-amber-500/30" };
+  if (m >= 9 && m <= 11) return { label: "秋フェス", icon: "🍁", color: "bg-orange-500/15 text-orange-300 ring-orange-500/30" };
+  return { label: "冬フェス", icon: "❄️", color: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30" };
+}
 
 const GENRE_STYLES: Record<Genre, string> = {
-  Rock: "bg-orange-500/15 text-orange-300 ring-orange-500/30",
+  Rock: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   Alternative: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
-  Pop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
+  Pop: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",
   Idol: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
   HipHop: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   EDM: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",
@@ -272,9 +222,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  const detail = DETAILED_CONTENTS[event.id] || DEFAULT_CONTENT;
   const isSaved = savedEventIds.includes(event.id);
   const isAttended = attendedEventIds.includes(event.id);
+  const organizer = getFestivalOrganizer(event.artist_name, event.venue_name);
+  const seasonInfo = getFestivalSeason(event.event_date);
+
+  const festivalDescription = event.event_title
+    ? `${event.event_title}（${event.artist_name}）は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける全国屈指の音楽フェスティバルです。`
+    : `「${event.artist_name}」は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出をお楽しみください。`;
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -286,44 +241,34 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-full bg-transparent text-zinc-100 pb-20">
       {/* ヒーローエリア */}
       <section className="relative overflow-hidden border-b border-zinc-900/60 bg-gradient-to-b from-zinc-950 to-transparent pt-16 pb-12 sm:pt-20">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(139,92,246,0.15),transparent)]" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(245,158,11,0.15),transparent)]" aria-hidden />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors">
-            <span>←</span> 公演スケジュール一覧に戻る
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 mb-6 transition-colors font-medium">
+            <span>←</span> フェス一覧に戻る
           </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-3xl">
               <div className="flex flex-wrap gap-2">
-                {event.is_festival && (
-                  <span className="inline-block rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                    Festival
-                  </span>
-                )}
-                <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ${GENRE_STYLES[event.genre]}`}>
+                <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ring-1 ${seasonInfo.color}`}>
+                  {seasonInfo.icon} {seasonInfo.label}
+                </span>
+                <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ring-1 ${GENRE_STYLES[event.genre]}`}>
                   {event.genre}
                 </span>
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
-                {event.event_title ? (
-                  <>
-                    <span className="block text-zinc-100">{event.event_title}</span>
-                    <span className="block text-lg sm:text-xl font-semibold text-zinc-400 mt-4 leading-relaxed">
-                      出演: {event.artist_name}
-                    </span>
-                  </>
-                ) : (
-                  <span className="block">{event.artist_name}</span>
-                )}
+              <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+                {event.artist_name}
               </h1>
-              <p className="text-base text-zinc-400 font-medium sm:text-lg flex flex-wrap items-center gap-x-4 gap-y-1">
+              <p className="text-base text-zinc-300 font-medium sm:text-lg flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span>📅 {formatDate(event.event_date)}</span>
                 <span className="text-zinc-700">·</span>
                 <span>📍 {event.venue_name} ({event.location_city})</span>
+                <span className="text-zinc-700">·</span>
+                <span className="text-amber-300 font-semibold">🏢 主催: {organizer}</span>
               </p>
             </div>
-
 
             {/* 行った ＆ お気に入り ＆ シェアボタン */}
             <div className="flex flex-wrap items-center gap-3">
@@ -332,35 +277,35 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   <button
                     type="button"
                     onClick={() => setIsDialogOpen(true)}
-                    className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
                       isAttended
                         ? "bg-emerald-600/10 text-emerald-400 ring-1 ring-emerald-500/40 hover:bg-emerald-600/20"
-                        : "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                        : "bg-zinc-900 text-zinc-300 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-white"
                     }`}
                   >
                     <CheckIcon solid={isAttended} />
-                    {isAttended ? "行った公演に登録中" : "行った公演にチェックイン"}
+                    {isAttended ? "行ったフェスに登録中" : "行ったフェスにチェックイン"}
                   </button>
                   <button
                     type="button"
                     onClick={() => toggleSaveEvent(event.id)}
-                    className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
                       isSaved
                         ? "bg-pink-600/10 text-pink-400 ring-1 ring-pink-500/40 hover:bg-pink-600/20"
-                        : "bg-zinc-900 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                        : "bg-zinc-900 text-zinc-300 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-white"
                     }`}
                   >
                     <svg className="h-5 w-5" fill={isSaved ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                     </svg>
-                    {isSaved ? "行きたい公演に保存中" : "行きたいリストに保存"}
+                    {isSaved ? "行きたいリストに保存中" : "行きたいリストに保存"}
                   </button>
                 </>
               )}
               <button
                 type="button"
                 onClick={handleShare}
-                className="rounded-xl bg-zinc-900 p-3 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200 transition-all text-sm font-semibold flex items-center gap-1.5"
+                className="rounded-2xl bg-zinc-900 p-3 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200 transition-all text-sm font-semibold flex items-center gap-1.5"
               >
                 <span>🔗</span>
                 {copied ? "コピー完了!" : "シェア"}
@@ -374,87 +319,46 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-3 lg:items-start">
           
-          {/* 左：アーティスト紹介 ＆ 代表曲プレイリスト (2/3カラム) */}
+          {/* 左：フェス概要 ＆ 主催者情報 ＆ ラインナップ (2/3カラム) */}
           <div className="lg:col-span-2 space-y-8">
-            <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm sm:p-8 space-y-4">
-              <h2 className="text-xl font-bold text-white">公演の紹介</h2>
-              <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
-                {detail.description}
+            <section className="rounded-3xl border border-zinc-800/80 bg-zinc-950/60 p-6 backdrop-blur-md sm:p-8 space-y-5">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span>🎪</span> フェスの概要・特徴
+              </h2>
+              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
+                {festivalDescription}
               </p>
 
-              {/* 複数アーティストの場合はリンク一覧を表示 */}
+              {/* 主主催者・プロモーターカード */}
+              <div className="mt-6 pt-6 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-zinc-900/40 p-4 border border-zinc-850">
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">🏢 主催・プロモーター</p>
+                  <p className="text-sm font-bold text-amber-300">{organizer}</p>
+                </div>
+                <div className="rounded-2xl bg-zinc-900/40 p-4 border border-zinc-850">
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">📍 開催場所・エリア</p>
+                  <p className="text-sm font-bold text-white">{event.venue_name} ({event.location_city})</p>
+                </div>
+              </div>
+
+              {/* 複数アーティスト判定時またはラインナップ表示 */}
               {isMultipleArtists && artistList.length > 0 && (
                 <div className="mt-8 pt-6 border-t border-zinc-900">
-                  <h3 className="text-base font-bold text-white mb-4">出演アーティスト</h3>
+                  <h3 className="text-base font-bold text-white mb-4">🎤 出演アーティスト・ステージラインナップ</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {artistList.map((a) => (
                       <Link 
                         key={a} 
                         href={`/artists/${encodeURIComponent(a)}`}
-                        className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:bg-[#FF5200]/10 hover:border-[#FF5200]/30 transition-colors group"
+                        className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-amber-500/10 hover:border-amber-500/30 transition-colors group"
                       >
-                        <span className="text-sm font-semibold text-zinc-300 truncate group-hover:text-white">{a}</span>
-                        <span className="text-[#FF5200] opacity-50 group-hover:opacity-100 transition-opacity">→</span>
+                        <span className="text-xs font-bold text-zinc-200 truncate group-hover:text-amber-300">{a}</span>
+                        <span className="text-amber-400 text-xs opacity-60 group-hover:opacity-100 transition-opacity">➔</span>
                       </Link>
                     ))}
                   </div>
                 </div>
               )}
-
-              {/* 単独アーティストの場合はSpotifyプレイヤを埋め込み */}
-              {!isMultipleArtists && spotifyData?.artist && (
-                <div className="mt-8 pt-6 border-t border-zinc-900">
-                  <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                    <span className="text-[#FF5200]">🎵</span> Top Tracks
-                  </h3>
-                  <div className="flex flex-col gap-3">
-                    {spotifyData.tracks?.length > 0 ? (
-                      spotifyData.tracks.map((track: any) => (
-                        <iframe
-                          key={track.id}
-                          src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
-                          width="100%"
-                          height="80"
-                          frameBorder="0"
-                          allowFullScreen={false}
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          loading="lazy"
-                          className="rounded-xl border border-white/5 bg-black"
-                        ></iframe>
-                      ))
-                    ) : (
-                      <iframe
-                        src={`https://open.spotify.com/embed/artist/${spotifyData.artist.id}?utm_source=generator&theme=0`}
-                        width="100%"
-                        height="352"
-                        frameBorder="0"
-                        allowFullScreen={false}
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"
-                        className="rounded-xl"
-                      ></iframe>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 他のライブを探すボタン（スワイプ機能への導線） */}
-              {!isMultipleArtists && (
-                <div className="mt-8 pt-6 border-t border-zinc-900">
-                  <Link 
-                    href={`/artists/${encodeURIComponent(event?.artist_name?.trim() || '')}`}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-[#FF5200] px-4 py-4 text-sm font-bold text-white shadow-lg shadow-pink-500/20 hover:from-pink-500 hover:to-[#FF5200]/90 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <span className="text-xl">🔥</span>
-                    他のライブをスワイプで探す
-                  </Link>
-                </div>
-              )}
-
-              <h3 className="text-base font-bold text-zinc-300 pt-6 border-t border-zinc-900 mt-6">アーティスト解説</h3>
-              <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                {detail.bio}
-              </p>
             </section>
 
             {/* プレイリスト風のトラックリスト */}
@@ -595,54 +499,35 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-6">
               <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">タイムテーブル</h2>
               <ul className="space-y-4">
-                {event.open_time || event.start_time ? (
-                  <>
-                    {event.open_time && (
-                      <li className="flex gap-4 items-start">
-                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
-                          {event.open_time}
-                        </span>
-                        <span className="text-sm text-zinc-300 pt-0.5">開場 (Doors Open)</span>
-                      </li>
-                    )}
-                    {event.start_time && (
-                      <li className="flex gap-4 items-start">
-                        <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
-                          {event.start_time}
-                        </span>
-                        <span className="text-sm text-zinc-300 pt-0.5">開演 (Show Starts)</span>
-                      </li>
-                    )}
-                  </>
-                ) : (
-                  detail.timetable.map((item) => (
-                    <li key={item.time} className="flex gap-4 items-start">
-                      <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-primary-400 font-mono tracking-wide">
-                        {item.time}
-                      </span>
-                      <span className="text-sm text-zinc-300 pt-0.5">{item.label}</span>
-                    </li>
-                  ))
+                {event.open_time && (
+                  <li className="flex gap-4 items-start">
+                    <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-amber-400 font-mono tracking-wide">
+                      {event.open_time}
+                    </span>
+                    <span className="text-sm text-zinc-300 pt-0.5">開場 (Doors Open)</span>
+                  </li>
+                )}
+                {event.start_time && (
+                  <li className="flex gap-4 items-start">
+                    <span className="bg-zinc-900 rounded-lg px-2.5 py-1 text-xs font-bold text-amber-400 font-mono tracking-wide">
+                      {event.start_time}
+                    </span>
+                    <span className="text-sm text-zinc-300 pt-0.5">開演 (Show Starts)</span>
+                  </li>
+                )}
+                {!event.open_time && !event.start_time && (
+                  <li className="text-xs text-zinc-400 leading-relaxed">
+                    ※ 詳細なステージタイムテーブル・出演順はフェス公式サイトにて順次発表されます。
+                  </li>
                 )}
               </ul>
             </section>
 
             <section className="rounded-2xl border border-zinc-900 bg-zinc-950/40 p-6 backdrop-blur-sm space-y-6">
               <h2 className="text-lg font-bold text-white pb-3 border-b border-zinc-900">チケット料金 (税込)</h2>
-              {event.ticket_price_info ? (
-                <div className="text-sm text-zinc-300 leading-relaxed font-medium bg-zinc-900/30 rounded-xl p-3 border border-zinc-900 mb-6">
-                  {event.ticket_price_info}
-                </div>
-              ) : (
-                <ul className="space-y-3 mb-6">
-                  {detail.ticketInfo.map((info) => (
-                    <li key={info.type} className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-400 font-medium">{info.type}</span>
-                      <span className="text-white font-bold font-mono">{info.price}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="text-sm text-zinc-200 leading-relaxed font-semibold bg-zinc-900/60 rounded-2xl p-4 border border-zinc-800 mb-6">
+                {event.ticket_price_info || "※ チケット種別・価格詳細はオフィシャルプレイガイドにて順次公開中"}
+              </div>
 
               <div className="border-t border-zinc-900 pt-5 space-y-3">
                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">🎫 チケットを探す (プレイガイド)</h3>

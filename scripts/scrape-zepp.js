@@ -88,17 +88,17 @@ async function runZeppScraper() {
     const $ = cheerio.load(html);
     let count = 0;
 
-    $('a.sch-content').each((_, el) => {
+    for (const el of $('a.sch-content').get()) {
       const year = $(el).find('p.sch-content-date__year').text().trim();
       const monthDay = $(el).find('p.sch-content-date__month').text().trim();
       const performer = $(el).find('h2.sch-content-text__performer').text().trim().replace(/\s+/g, ' ');
       const title = $(el).find('h3.sch-content-text__ttl').text().trim().replace(/\s+/g, ' ');
 
-      if (!year || !monthDay || !performer) return;
+      if (!year || !monthDay || !performer) continue;
 
       // "7.1" ➔ month="07", day="01"
       const dateParts = monthDay.split('.');
-      if (dateParts.length !== 2) return;
+      if (dateParts.length !== 2) continue;
       const month = dateParts[0].padStart(2, '0');
       const day = dateParts[1].padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
@@ -107,7 +107,7 @@ async function runZeppScraper() {
       const lookupKey = `${performer.toLowerCase()}|${hall.name.toLowerCase()}|${formattedDate}`;
 
       if (existingKeys.has(lookupKey)) {
-        return; // すでに登録済みならスキップ
+        continue; // すでに登録済みならスキップ
       }
 
       console.log(`   ➕ New Event: ${formattedDate} | ${performer} @ ${hall.name} (Genre: ${genre})`);
@@ -121,7 +121,7 @@ async function runZeppScraper() {
       });
       existingKeys.add(lookupKey);
       count++;
-    });
+    }
 
     if (count > 0) {
       // データベースにバルクインサートする

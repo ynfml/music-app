@@ -27,44 +27,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ==========================================================
-// 2. ジャンル自動判定ルール
-// ==========================================================
-function detectGenre(performer, title) {
-  let text = `${performer} ${title}`.toLowerCase();
-  
-  // サブアクト・転換DJ・オープニングアクトなどの表記をクレンジングで排除
-  text = text.replace(/dj\s*[:：]\s*[^\s/、,]+([/、,\s]|$)/g, ' ');
-  text = text.replace(/\(\s*dj\s*\)/g, ' ');
-  text = text.replace(/o\.a\s*[:：]\s*[^\s/、,]+/g, ' ');
-  text = text.replace(/fan\s*club/g, ' ');
-  text = text.replace(/club\s*quattro/g, ' ');
-  text = text.replace(/club\s*tour/g, ' ');
-  
-  // EDM判定 (単語としての dj, edm, techno またはクレンジング後の club)
-  const edmRegex = /\b(dj|edm|techno)\b|\bclub\b/i;
-  if (edmRegex.test(text) || text.includes('クラブ') || text.includes('テクノ') || text.includes('電気グルーヴ') || text.includes('testset') || text.includes('opera') || text.includes('ピノキオピー')) {
-    return 'EDM';
-  }
-  
-  // HipHop判定
-  const hiphopRegex = /\b(rap|hiphop|mc)\b/i;
-  if (hiphopRegex.test(text) || text.includes('ラップ') || text.includes('ヒップホップ')) {
-    return 'HipHop';
-  }
-  
-  // Pop判定
-  const popKeywords = [
-    'アイドル', 'バースデー', 'アニソン', '声優', '天月', 'eve', '鈴木愛理', 
-    'juice=juice', '秦 基博', 'genic', 'owv', 'シンガー', '弾き語り', 
-    '七海ひろき', 'しゅーくる', 'なぎちゃん'
-  ];
-  if (popKeywords.some(keyword => text.includes(keyword))) {
-    return 'Pop';
-  }
-  
-  return 'Rock'; // デフォルトはリキッドルームの性質上ロック
-}
+// detectGenre は scripts/utils/genre.js からインポートされたものを使用します
+
 
 // ==========================================================
 // 3. メイン処理
