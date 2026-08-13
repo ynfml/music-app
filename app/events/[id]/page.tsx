@@ -191,35 +191,53 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     setSetlistLoading(false);
   }
 
+function normalizeKey(str: string): string {
+  return (str || "")
+    .toLowerCase()
+    .replace(/[’'"`]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/202\d/g, "")
+    .replace(/第\d+章/g, "")
+    .trim();
+}
+
   useEffect(() => {
     async function loadAttendees() {
       setAttendeesLoading(true);
       const supabase = createSupabaseClient();
-      const { data, error } = await supabase
+      const { data: attendedData } = await supabase
         .from("attended_events")
-        .select(`
-          user_id,
-          comment,
-          created_at,
-          profiles (
-            display_name,
-            favorite_genres
-          )
-        `)
+        .select("user_id, comment, created_at")
         .eq("event_id", id)
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
-      setAttendees(data as any);
-    } else {
-      console.error("Failed to load attendees:", error?.message);
-    }
-    setAttendeesLoading(false);
-  }
+      if (!attendedData || attendedData.length === 0) {
+        setAttendees([]);
+        setAttendeesLoading(false);
+        return;
+      }
 
-  loadAttendees();
-  loadSetlist();
-}, [id, attendedEventIds]);
+      const userIds = Array.from(new Set(attendedData.map((a) => a.user_id)));
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, display_name, favorite_genres")
+        .in("id", userIds);
+
+      const profilesMap = new Map((profilesData || []).map((p) => [p.id, p]));
+      const formatted = attendedData.map((a) => ({
+        user_id: a.user_id,
+        comment: a.comment,
+        created_at: a.created_at,
+        profiles: profilesMap.get(a.user_id) || null,
+      }));
+
+      setAttendees(formatted);
+      setAttendeesLoading(false);
+    }
+
+    loadAttendees();
+    loadSetlist();
+  }, [id, attendedEventIds]);
 
   // 公演情報を探す
   const event = events.find((e) => e.id === id);
@@ -238,8 +256,19 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const isSaved = savedEventIds.includes(event.id);
   const isAttended = attendedEventIds.includes(event.id);
 
-  // リッチメタデータ辞書から参照
-  const festMeta = festivalDetailsDict[event.artist_name];
+  // スマート・エイリアス正規化マッチングによるリッチメタデータ参照
+  const normTitle = normalizeKey(event.artist_name);
+  let festMeta = festivalDetailsDict[event.artist_name];
+  if (!festMeta) {
+    for (const [k, val] of Object.entries(festivalDetailsDict)) {
+      const nk = normalizeKey(k);
+      if (nk === normTitle || (nk.length >= 4 && normTitle.includes(nk)) || (normTitle.length >= 4 && nk.includes(normTitle))) {
+        festMeta = val;
+        break;
+      }
+    }
+  }
+
   const organizer = festMeta?.organizer || getFestivalOrganizer(event.artist_name, event.venue_name);
   const seasonInfo = getFestivalSeason(event.event_date);
   const festivalDescription = festMeta?.description || (event.event_title

@@ -1,7 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
-const cheerio = require('cheerio');
 
 const envPath = path.join(process.cwd(), '.env.local');
 const envFile = fs.readFileSync(envPath, 'utf-8');
@@ -14,8 +13,18 @@ envFile.split('\n').forEach(line => {
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const DICT_PATH = path.join(process.cwd(), 'lib/data/festival_details.json');
 
+function normalizeKey(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[’'"`]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/202\d/g, '')
+    .replace(/第\d+章/g, '')
+    .trim();
+}
+
 async function main() {
-  console.log('🚀 Starting Deep Festival Metadata & Lineup Enrichment (Method 1 & 2)...');
+  console.log('🚀 Running Full Database Festival Details Enricher...');
 
   let dict = {};
   if (fs.existsSync(DICT_PATH)) {
@@ -37,20 +46,26 @@ async function main() {
     page++;
   }
 
-  console.log(`Found ${allEvents.length} festivals in Supabase DB.`);
+  console.log(`Processing ${allEvents.length} festivals from Supabase DB...`);
 
-  let enrichedCount = 0;
+  let matchedCount = 0;
   for (const fes of allEvents) {
     const festName = fes.artist_name;
-    
-    // Check if already in dictionary with rich manual/scraped data
-    if (dict[festName] && dict[festName].lineup && dict[festName].lineup.length > 0) {
-      continue;
+    const normFestName = normalizeKey(festName);
+
+    // 1. Direct key match or normalized key match in dictionary
+    let meta = dict[festName];
+    if (!meta) {
+      for (const [k, val] of Object.entries(dict)) {
+        if (normalizeKey(k) === normFestName || normFestName.includes(normalizeKey(k)) || normalizeKey(k).includes(normFestName)) {
+          meta = val;
+          break;
+        }
+      }
     }
 
-    // Try generating dynamic rich festival record for this festival
     const venue = fes.venue_name || '特設会場';
-    const city = fes.location_city || '日本';
+    const city = fes.location_city || '日本国内';
     const date = fes.event_date || '';
     const m = parseInt((date.split('-')[1] || '1'), 10);
     let seasonLabel = 'フェス';
@@ -59,26 +74,23 @@ async function main() {
     else if (m >= 9 && m <= 11) seasonLabel = '秋フェス';
     else seasonLabel = '冬フェス';
 
-    // Promoter deduction
-    let organizer = 'フェス実行委員会 / プロモーター';
-    const upper = (festName + ' ' + venue).toUpperCase();
-    if (upper.includes('VARIT') || upper.includes('CIRCUS')) organizer = '神戸VARIT. / PINEFIELDS';
-    else if (upper.includes('ROCK IN JAPAN') || upper.includes('COUNTDOWN JAPAN') || upper.includes('JAPAN JAM')) organizer = 'ロッキング・オン・ジャパン';
-    else if (upper.includes('SUMMER SONIC') || upper.includes('SONICMANIA')) organizer = 'クリエイティブマンプロダクション';
-    else if (upper.includes('FUJI ROCK')) organizer = 'SMASH (スマッシュ)';
-    else if (upper.includes('RISING SUN')) organizer = 'WESS';
-    else if (upper.includes('VIVA LA ROCK')) organizer = 'FACT / DISK GARAGE';
-    else if (upper.includes('SWEET LOVE SHOWER')) organizer = 'スペースシャワーTV';
-    else if (upper.includes('MONSTER BASH')) organizer = 'DUKE (デューク)';
-    else if (upper.includes('WILD BUNCH')) organizer = 'YUMEBANCHI (夢番地)';
-    else if (upper.includes('FM802') || upper.includes('RADIO CRAZY') || upper.includes('MINAMI WHEEL')) organizer = 'FM802';
-    else if (upper.includes('04 LIMITED SAZABYS') || upper.includes('YON FES')) organizer = '04 Limited Sazabys / サンデーフォーク';
-    else if (upper.includes('10-FEET') || upper.includes('京都大作戦')) organizer = '10-FEET / Sound Creator';
-    else if (upper.includes('SIM') || upper.includes('DEAD POP')) organizer = 'SiM / DISK GARAGE';
+    // Deduce promoter
+    let organizer = meta?.organizer || 'フェス実行委員会 / プロモーター';
+    const upperNorm = normalizeKey(festName + ' ' + venue);
+    if (upperNorm.includes('rockin') || upperNorm.includes('japanjam') || upperNorm.includes('cdj')) organizer = 'ロッキング・オン・ジャパン';
+    else if (upperNorm.includes('summersonic') || upperNorm.includes('sonicmania') || upperNorm.includes('punkspring')) organizer = 'クリエイティブマンプロダクション';
+    else if (upperNorm.includes('fujirock') || upperNorm.includes('asagiri')) organizer = 'SMASH (スマッシュ)';
+    else if (upperNorm.includes('risingsun')) organizer = 'WESS';
+    else if (upperNorm.includes('vivalarock')) organizer = 'FACT / DISK GARAGE';
+    else if (upperNorm.includes('sweetloveshower')) organizer = 'スペースシャワーTV';
+    else if (upperNorm.includes('monsterbash')) organizer = 'DUKE (デューク)';
+    else if (upperNorm.includes('wildbunch')) organizer = 'YUMEBANCHI (夢番地)';
+    else if (upperNorm.includes('fm802') || upperNorm.includes('radiocrazy') || upperNorm.includes('minamiwheel')) organizer = 'FM802';
+    else if (upperNorm.includes('varit') || upperNorm.includes('circus')) organizer = '神戸VARIT. / PINEFIELDS';
 
-    // Extract lineup performers from title if available
-    let lineup = [];
-    if (festName.includes('/') || festName.includes('vs') || festName.includes('w/') || festName.includes('＆') || festName.includes('&')) {
+    // Parse lineup from title if multiple artists present
+    let lineup = meta?.lineup || [];
+    if (lineup.length === 0 && (festName.includes('/') || festName.includes('vs') || festName.includes('w/') || festName.includes('＆') || festName.includes('&'))) {
       lineup = festName.split(/[\/＆&]|vs|w\//i)
         .map(s => s.trim())
         .filter(s => s.length > 0 && !s.includes('2026') && !s.includes('FEST') && !s.includes('フェス'));
@@ -86,16 +98,16 @@ async function main() {
 
     dict[festName] = {
       organizer: organizer,
-      description: `${city}の${venue}にて開催される注目の${seasonLabel}「${festName}」！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出・フードを心ゆくまでお楽しみください。`,
+      description: meta?.description || `${city}の${venue}にて開催される注目の${seasonLabel}「${festName}」！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出・フードを心ゆくまでお楽しみください。`,
       lineup: lineup,
-      official_url: `https://www.google.com/search?q=${encodeURIComponent(festName + ' 公式サイト')}`,
-      features: [`${city}開催`, seasonLabel, fes.genre || 'Rock']
+      official_url: meta?.official_url || `https://www.google.com/search?q=${encodeURIComponent(festName + ' 公式サイト')}`,
+      features: meta?.features || [`${city}開催`, seasonLabel, fes.genre || 'Rock']
     };
-    enrichedCount++;
+    matchedCount++;
   }
 
   fs.writeFileSync(DICT_PATH, JSON.stringify(dict, null, 2), 'utf-8');
-  console.log(`✨ Enriched and updated festival metadata dictionary with ${Object.keys(dict).length} records!`);
+  console.log(`✨ All ${matchedCount} festivals enriched and normalized! Dictionary total records: ${Object.keys(dict).length}`);
 }
 
 main();
