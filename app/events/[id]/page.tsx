@@ -9,6 +9,19 @@ import type { Genre } from "@/lib/types";
 import CheckInDialog from "@/components/CheckInDialog";
 import EditSetlistDialog from "@/components/EditSetlistDialog";
 
+import festivalDetailsDictRaw from "@/lib/data/festival_details.json";
+
+const festivalDetailsDict = festivalDetailsDictRaw as Record<
+  string,
+  {
+    organizer?: string;
+    description?: string;
+    lineup?: string[];
+    official_url?: string;
+    features?: string[];
+  }
+>;
+
 function getFestivalOrganizer(title: string, venue: string): string {
   const upper = (title + " " + venue).toUpperCase();
   if (upper.includes("ROCK IN JAPAN") || upper.includes("COUNTDOWN JAPAN") || upper.includes("JAPAN JAM")) return "ロッキング・オン・ジャパン";
@@ -224,12 +237,16 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   const isSaved = savedEventIds.includes(event.id);
   const isAttended = attendedEventIds.includes(event.id);
-  const organizer = getFestivalOrganizer(event.artist_name, event.venue_name);
-  const seasonInfo = getFestivalSeason(event.event_date);
 
-  const festivalDescription = event.event_title
+  // リッチメタデータ辞書から参照
+  const festMeta = festivalDetailsDict[event.artist_name];
+  const organizer = festMeta?.organizer || getFestivalOrganizer(event.artist_name, event.venue_name);
+  const seasonInfo = getFestivalSeason(event.event_date);
+  const festivalDescription = festMeta?.description || (event.event_title
     ? `${event.event_title}（${event.artist_name}）は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける全国屈指の音楽フェスティバルです。`
-    : `「${event.artist_name}」は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出をお楽しみください。`;
+    : `「${event.artist_name}」は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出をお楽しみください。`);
+
+  const effectiveLineup = (festMeta?.lineup && festMeta.lineup.length > 0) ? festMeta.lineup : artistList;
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -257,6 +274,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ring-1 ${GENRE_STYLES[event.genre]}`}>
                   {event.genre}
                 </span>
+                {festMeta?.features?.map((ft) => (
+                  <span key={ft} className="inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-900 text-amber-300 ring-1 ring-amber-500/30">
+                    🏷️ {ft}
+                  </span>
+                ))}
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
                 {event.artist_name}
@@ -266,12 +288,23 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <span className="text-zinc-700">·</span>
                 <span>📍 {event.venue_name} ({event.location_city})</span>
                 <span className="text-zinc-700">·</span>
-                <span className="text-amber-300 font-semibold">🏢 主催: {organizer}</span>
+                <span className="text-amber-300 font-bold">🏢 主催: {organizer}</span>
               </p>
             </div>
 
-            {/* 行った ＆ お気に入り ＆ シェアボタン */}
+            {/* 行った ＆ お気に入り ＆ シェア ＆ 公式サイトボタン */}
             <div className="flex flex-wrap items-center gap-3">
+              {festMeta?.official_url && (
+                <a
+                  href={festMeta.official_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 text-sm font-bold text-black shadow-lg shadow-amber-500/20 hover:from-amber-400 hover:to-amber-500 transition-all scale-[1.02] active:scale-[0.98]"
+                >
+                  <span>🌐</span>
+                  公式サイト
+                </a>
+              )}
               {user && (
                 <>
                   <button
@@ -325,40 +358,55 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <span>🎪</span> フェスの概要・特徴
               </h2>
-              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
+              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
                 {festivalDescription}
               </p>
 
-              {/* 主主催者・プロモーターカード */}
+              {/* 主催者 ＆ 会場詳細カード */}
               <div className="mt-6 pt-6 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-zinc-900/40 p-4 border border-zinc-850">
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">🏢 主催・プロモーター</p>
-                  <p className="text-sm font-bold text-amber-300">{organizer}</p>
+                <div className="rounded-2xl bg-zinc-900/60 p-4 border border-zinc-800">
+                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">🏢 主催・制作プロモーター</p>
+                  <p className="text-sm font-extrabold text-amber-300">{organizer}</p>
                 </div>
-                <div className="rounded-2xl bg-zinc-900/40 p-4 border border-zinc-850">
+                <div className="rounded-2xl bg-zinc-900/60 p-4 border border-zinc-800">
                   <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">📍 開催場所・エリア</p>
-                  <p className="text-sm font-bold text-white">{event.venue_name} ({event.location_city})</p>
+                  <p className="text-sm font-extrabold text-white">{event.venue_name} ({event.location_city})</p>
                 </div>
               </div>
 
-              {/* 複数アーティスト判定時またはラインナップ表示 */}
-              {isMultipleArtists && artistList.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-zinc-900">
-                  <h3 className="text-base font-bold text-white mb-4">🎤 出演アーティスト・ステージラインナップ</h3>
+              {/* 出演アーティスト・ステージラインナップ表示 */}
+              <div className="mt-8 pt-6 border-t border-zinc-900 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <span className="text-amber-400">🎤</span> 出演アーティスト・ステージラインナップ
+                    {effectiveLineup.length > 0 && (
+                      <span className="rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 text-xs font-mono font-bold">
+                        {effectiveLineup.length}組
+                      </span>
+                    )}
+                  </h3>
+                </div>
+
+                {effectiveLineup.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {artistList.map((a) => (
+                    {effectiveLineup.map((artist) => (
                       <Link 
-                        key={a} 
-                        href={`/artists/${encodeURIComponent(a)}`}
-                        className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:bg-amber-500/10 hover:border-amber-500/30 transition-colors group"
+                        key={artist} 
+                        href={`/artists/${encodeURIComponent(artist)}`}
+                        className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/70 border border-zinc-800 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all group"
                       >
-                        <span className="text-xs font-bold text-zinc-200 truncate group-hover:text-amber-300">{a}</span>
+                        <span className="text-xs font-bold text-zinc-200 truncate group-hover:text-amber-300">{artist}</span>
                         <span className="text-amber-400 text-xs opacity-60 group-hover:opacity-100 transition-opacity">➔</span>
                       </Link>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="rounded-2xl bg-zinc-900/40 border border-zinc-850 p-5 text-center text-xs text-zinc-400 space-y-1">
+                    <p className="font-semibold text-zinc-300">※ 第1弾・第2弾 出演アーティスト順次発表中</p>
+                    <p className="text-[11px] text-zinc-500">フェス公式サイト・SNSにて随時追加アーティストが公開されます。</p>
+                  </div>
+                )}
+              </div>
             </section>
 
             {/* プレイリスト風のトラックリスト */}
