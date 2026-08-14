@@ -14,6 +14,7 @@ import festivalDetailsDictRaw from "@/lib/data/festival_details.json";
 const festivalDetailsDict = festivalDetailsDictRaw as Record<
   string,
   {
+    catchphrase?: string;
     organizer?: string;
     description?: string;
     lineup?: string[];
@@ -382,10 +383,17 @@ function normalizeKey(str: string): string {
           {/* 左：フェス概要 ＆ 主催者情報 ＆ ラインナップ (2/3カラム) */}
           <div className="lg:col-span-2 space-y-8">
             <section className="rounded-3xl border border-zinc-800/80 bg-zinc-950/60 p-6 backdrop-blur-md sm:p-8 space-y-5">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <span>🎪</span> フェスの概要・特徴
-              </h2>
-              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+              <div>
+                {festMeta?.catchphrase && (
+                  <div className="inline-block rounded-xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 text-xs font-extrabold text-amber-300 mb-3 tracking-wide">
+                    {festMeta.catchphrase}
+                  </div>
+                )}
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>🎪</span> フェスの概要・見どころ
+                </h2>
+              </div>
+              <p className="text-zinc-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-normal">
                 {festivalDescription}
               </p>
 
