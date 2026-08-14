@@ -86,6 +86,33 @@ function getFestivalOrganizer(title: string, venue: string): string {
   return "フェス実行委員会 / プロモーター";
 }
 
+function getArtistHost(title: string, venue: string): string | null {
+  const norm = (title + " " + venue).toUpperCase();
+  if (norm.includes("BLARE")) return "coldrain";
+  if (norm.includes("京都大作戦")) return "10-FEET";
+  if (norm.includes("HAZIKETEMAZARE") || norm.includes("ハジマザ")) return "HEY-SMITH";
+  if (norm.includes("YON FES")) return "04 Limited Sazabys";
+  if (norm.includes("DEAD POP")) return "SiM";
+  if (norm.includes("イナズマロック")) return "西川貴教 (T.M.Revolution)";
+  if (norm.includes("氣志團万博")) return "氣志團";
+  if (norm.includes("ポルノ超特急")) return "ROTTENGRAFFTY";
+  if (norm.includes("京都音楽博覧会")) return "くるり";
+  if (norm.includes("AIR JAM")) return "Hi-STANDARD";
+  if (norm.includes("THICK FESTIVAL")) return "SECRET 7 LINE";
+  if (norm.includes("SUMMER BOMB")) return "Zeebra";
+  if (norm.includes("YOKOSUKA REGGAE BASH")) return "RUEED";
+  if (norm.includes("風とロック")) return "箭内道彦";
+
+  if (title.includes("presents") || title.includes("主催")) {
+    const parts = title.split(/presents|主催/i);
+    if (parts[0] && parts[0].trim().length > 0 && parts[0].trim().length < 30) {
+      return parts[0].trim();
+    }
+  }
+
+  return null;
+}
+
 function getFestivalSeason(dateStr: string): { label: string; icon: string; color: string } {
   const m = parseInt(dateStr.split("-")[1] || "1", 10);
   if (m >= 3 && m <= 5) return { label: "春フェス", icon: "🌸", color: "bg-pink-500/15 text-pink-300 ring-pink-500/30" };
@@ -793,13 +820,19 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* 主催者・会場・都市 */}
+                        {/* 会場・都市・アーティスト主催情報 */}
                         <div className="mb-6 space-y-2.5 text-xs sm:text-sm text-zinc-400 bg-zinc-900/40 rounded-2xl p-4 border border-zinc-900/80">
-                          {/* 🏢 主催・プロモーター */}
-                          <div className="flex items-center gap-2.5 text-amber-300/90 font-semibold text-xs">
-                            <span>🏢</span>
-                            <span className="truncate">主催: <strong className="text-zinc-200 font-bold">{organizer}</strong></span>
-                          </div>
+                          {/* アーティスト主催の場合のみ👑 主催表示 */}
+                          {(() => {
+                            const artistHost = getArtistHost(event.artist_name, event.venue_name);
+                            if (!artistHost) return null;
+                            return (
+                              <div className="flex items-center gap-2.5 text-amber-300 font-extrabold text-xs mb-1">
+                                <span>👑</span>
+                                <span className="truncate">主催: <strong className="text-amber-200">{artistHost}</strong></span>
+                              </div>
+                            );
+                          })()}
 
                           {/* 📍 会場 ＆ エリア */}
                           <div className="flex items-center gap-2.5 text-zinc-200 font-medium">
