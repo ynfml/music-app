@@ -64,6 +64,33 @@ function getFestivalSeason(dateStr: string): { label: string; icon: string; colo
   return { label: "冬フェス", icon: "❄️", color: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30" };
 }
 
+function getArtistHost(title: string, organizerStr: string): string | null {
+  const norm = (title + " " + organizerStr).toUpperCase();
+  if (norm.includes("BLARE")) return "coldrain";
+  if (norm.includes("京都大作戦")) return "10-FEET";
+  if (norm.includes("HAZIKETEMAZARE") || norm.includes("ハジマザ")) return "HEY-SMITH";
+  if (norm.includes("YON FES")) return "04 Limited Sazabys";
+  if (norm.includes("DEAD POP")) return "SiM";
+  if (norm.includes("イナズマロック")) return "西川貴教 (T.M.Revolution)";
+  if (norm.includes("氣志團万博")) return "氣志團";
+  if (norm.includes("ポルノ超特急")) return "ROTTENGRAFFTY";
+  if (norm.includes("京都音楽博覧会")) return "くるり";
+  if (norm.includes("AIR JAM")) return "Hi-STANDARD";
+  if (norm.includes("THICK FESTIVAL")) return "SECRET 7 LINE";
+  if (norm.includes("SUMMER BOMB")) return "Zeebra";
+  if (norm.includes("YOKOSUKA REGGAE BASH")) return "RUEED";
+  if (norm.includes("風とロック")) return "箭内道彦";
+
+  if (title.includes("presents") || title.includes("主催")) {
+    const parts = title.split(/presents|主催/i);
+    if (parts[0] && parts[0].trim().length > 0 && parts[0].trim().length < 30) {
+      return parts[0].trim();
+    }
+  }
+
+  return null;
+}
+
 const GENRE_STYLES: Record<Genre, string> = {
   Rock: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   Alternative: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
@@ -273,8 +300,9 @@ function normalizeKey(str: string): string {
   const organizer = festMeta?.organizer || getFestivalOrganizer(event.artist_name, event.venue_name);
   const seasonInfo = getFestivalSeason(event.event_date);
   const festivalDescription = festMeta?.description || `${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}「${event.artist_name}」！開放感あふれるライブステージと最高のサウンド演出、フェス限定フードやオフィシャルグッズまで会場全体で最高の音楽体験をお楽しみいただけます。`;
-
   const effectiveLineup = (festMeta?.lineup && festMeta.lineup.length > 0) ? festMeta.lineup : artistList;
+
+  const artistHost = getArtistHost(event.artist_name, organizer);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -315,8 +343,12 @@ function normalizeKey(str: string): string {
                 <span>📅 {formatDate(event.event_date)}</span>
                 <span className="text-zinc-700">·</span>
                 <span>📍 {event.venue_name} ({event.location_city})</span>
-                <span className="text-zinc-700">·</span>
-                <span className="text-amber-300 font-bold">🏢 主催: {organizer}</span>
+                {artistHost && (
+                  <>
+                    <span className="text-zinc-700">·</span>
+                    <span className="text-amber-300 font-extrabold">👑 主催: {artistHost}</span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -397,12 +429,25 @@ function normalizeKey(str: string): string {
                 {festivalDescription}
               </p>
 
-              {/* 主催者 ＆ 会場詳細カード */}
+              {/* アーティスト主催情報 ＆ 会場詳細カード */}
               <div className="mt-6 pt-6 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-zinc-900/60 p-4 border border-zinc-800">
-                  <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">🏢 主催・制作プロモーター</p>
-                  <p className="text-sm font-extrabold text-amber-300">{organizer}</p>
-                </div>
+                {artistHost ? (
+                  <div className="rounded-2xl bg-amber-500/10 p-4 border border-amber-500/30">
+                    <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">👑 主催アーティスト</p>
+                    <p className="text-sm font-extrabold text-amber-200">{artistHost}</p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-zinc-900/60 p-4 border border-zinc-800">
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">🏟️ 会場・ステージ種別</p>
+                    <p className="text-sm font-extrabold text-white">
+                      {event.venue_name.includes("メッセ") || event.venue_name.includes("アリーナ") || event.venue_name.includes("ドーム") || event.venue_name.includes("ポートメッセ")
+                        ? "全天候型インドアアリーナ"
+                        : event.venue_name.includes("公園") || event.venue_name.includes("広場") || event.venue_name.includes("野外")
+                        ? "開放型野外特設ステージ"
+                        : "都市型ライブハウスサーキット"}
+                    </p>
+                  </div>
+                )}
                 <div className="rounded-2xl bg-zinc-900/60 p-4 border border-zinc-800">
                   <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">📍 開催場所・エリア</p>
                   <p className="text-sm font-extrabold text-white">{event.venue_name} ({event.location_city})</p>
