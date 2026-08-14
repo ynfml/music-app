@@ -271,9 +271,7 @@ function normalizeKey(str: string): string {
 
   const organizer = festMeta?.organizer || getFestivalOrganizer(event.artist_name, event.venue_name);
   const seasonInfo = getFestivalSeason(event.event_date);
-  const festivalDescription = festMeta?.description || (event.event_title
-    ? `${event.event_title}（${event.artist_name}）は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける全国屈指の音楽フェスティバルです。`
-    : `「${event.artist_name}」は、${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}！主催・制作プロモーター「${organizer}」が手掛ける日本全国屈指の音楽フェスティバルです。豪華アーティストのステージパフォーマンスや特設会場ならではの演出をお楽しみください。`);
+  const festivalDescription = festMeta?.description || `${event.location_city}の${event.venue_name}にて開催される注目の${seasonInfo.label}「${event.artist_name}」！開放感あふれるライブステージと最高のサウンド演出、フェス限定フードやオフィシャルグッズまで会場全体で最高の音楽体験をお楽しみいただけます。`;
 
   const effectiveLineup = (festMeta?.lineup && festMeta.lineup.length > 0) ? festMeta.lineup : artistList;
 

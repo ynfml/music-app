@@ -23,7 +23,7 @@ function normalizeKey(str) {
     .trim();
 }
 
-// 都道府県別の確実なプロモーターマッピング
+// 都道府県別のプロモーターマッピング
 function getRegionalPromoter(city, venue) {
   const v = (venue || '').toLowerCase();
   const c = (city || '').toLowerCase();
@@ -41,7 +41,6 @@ function getRegionalPromoter(city, venue) {
   return 'DISK GARAGE / HOT STUFF PROMOTION / キョードー東京';
 }
 
-// ジャンル・会場・季節別の代表的アーティストプリセット
 const GENRE_ARTIST_PRESETS = {
   Rock: ['04 Limited Sazabys', '10-FEET', 'HEY-SMITH', 'SiM', 'Coldrain', 'SUPER BEAVER', 'ヤバイTシャツ屋さん', 'マキシマム ザ ホルモン', 'クリープハイプ', 'ハルカミライ'],
   Alternative: ['ASIAN KUNG-FU GENERATION', 'ストレイテナー', '9mm Parabellum Bullet', '凛として時雨', 'THE ORAL CIGARETTES', 'フレデリック', 'KANA-BOON', 'BIGMAMA'],
@@ -51,13 +50,23 @@ const GENRE_ARTIST_PRESETS = {
   Idol: ['BiSH', 'BiS', '豆柴の大群', 'ももいろクローバーZ', '私立恵比寿中学', '超ときめき♡宣伝部', '＝LOVE', '≠ME']
 };
 
+// 特定フェス専用の高品質＆特徴的な解説辞書
+const SPECIFIC_DESCRIPTIONS = {
+  blarefest: "coldrainが主催する国内最高峰のラウド＆ロックアリーナフェスティバル！愛知・ポートメッセなごやの巨大インドアステージに国内外の激重ロックバンド・パンク・ハードコアが一堂に会し、会場全体を爆音と圧倒的な熱気で揺らし尽くす冬のロックの祭典。",
+  haziketemazare: "HEY-SMITHが主催する関西最大級のスカパンク＆ラウド野外フェスティバル！泉大津フェニックス野外特設会場を舞台に、モッシュとダイブ、ホーンセクションの弾けるサウンドが交錯する最高峰の2日間。",
+  kyotodaisakusen: "10-FEETが主催する京都太陽が丘での伝説的野外ロックフェスティバル！「心ゆくまでご覧な祭」をテーマに、出演者とオーディエンスの熱き絆に満ちあふれた感動と爆音の熱狂空間。",
+  yonfes: "04 Limited Sazabysがホーム愛知・モリコロパークで開催する爽快な野外ロックフェスティバル！広大な芝生エリアと最高のロケーションで、ハッピーでキャッチーなメロディック・パンク＆ギターロックの饗宴。",
+  deadpop: "SiMが主催する川崎東扇島東公園での野外フェスティバル！「壁を壊す」をテーマに、パンク、ラウド、ヒップホップ、レゲエのジャンルの垣根を超えた真剣勝負が繰り広げられます。",
+  rocknrollcircus: "兵庫・神戸最大級のライブハウスサーキット型ロックフェスティバル！神戸VARIT.をはじめ周辺のライブハウス群を全面ジャックし、関西ロックシーンを牽引するトップバンドから全国注目の新鋭アーティストまでが連日熱いステージを繰り広げます。",
+  popyours: "2020年代の日本のヒップホップカルチャーを象徴する国内最大級のヒップホップフェスティバル。幕張メッセの巨大アリーナに、トップチャートからシーンの最前線を走る新星ラッパー・DJ・クリエイターが集結。",
+  thehope: "お台場特設会場にて開催される日本最高峰の大型ヒップホップフェスティバル。国内トップアーティストのみならず話題のオーバーシーズ客演まで、最新のストリートカルチャーと音楽が交錯する熱狂の一日。",
+  mellowcruise: "海風が心地よい神戸メリケンパークの絶景ロケーションで開催される都市型ヒップホップ＆R&Bフェスティバル。海と音楽、アートフードが融合した上質な空間でチルなライブを満喫。"
+};
+
 async function main() {
-  console.log('🚀 Running 100% Comprehensive Festival Metadata & Lineup Generator...');
+  console.log('🚀 Generating 100% Feature-Focused Festival Metadata (No Redundant Promoter Wording)...');
 
   let dict = {};
-  if (fs.existsSync(DICT_PATH)) {
-    try { dict = JSON.parse(fs.readFileSync(DICT_PATH, 'utf-8')); } catch (e) {}
-  }
 
   // Supabaseから全フェスを取得
   let page = 0;
@@ -65,7 +74,7 @@ async function main() {
   while (true) {
     const { data } = await supabase
       .from('events')
-      .select('id, artist_name, venue_name, location_city, event_date, genre, is_festival, ticket_price_info')
+      .select('id, artist_name, venue_name, location_city, event_date, genre, is_festival')
       .eq('is_festival', true)
       .range(page * 1000, (page + 1) * 1000 - 1);
     if (!data || data.length === 0) break;
@@ -76,7 +85,6 @@ async function main() {
 
   console.log(`Loaded ${allEvents.length} festivals from Supabase.`);
 
-  let enrichedCount = 0;
   for (const fes of allEvents) {
     const festName = fes.artist_name;
     const normName = normalizeKey(festName);
@@ -92,100 +100,88 @@ async function main() {
     else if (m >= 9 && m <= 11) seasonLabel = '秋フェス';
     else seasonLabel = '冬フェス';
 
-    // 既存のリッチデータがあるか確認
-    let existingMeta = dict[festName];
-    if (!existingMeta) {
-      for (const [k, val] of Object.entries(dict)) {
-        if (normalizeKey(k) === normName) {
-          existingMeta = val;
-          break;
-        }
-      }
-    }
+    // 1. 主催者名
+    let organizer = 'フェス実行委員会 / プロモーター';
+    const upper = (festName + ' ' + venue).toUpperCase();
+    if (upper.includes('BLARE')) organizer = 'coldrain / サンデーフォーク';
+    else if (upper.includes('ROCKIN') || upper.includes('JAPAN JAM') || upper.includes('CDJ')) organizer = 'ロッキング・オン・ジャパン';
+    else if (upper.includes('SUMMER SONIC') || upper.includes('SONICMANIA') || upper.includes('PUNKSPRING')) organizer = 'クリエイティブマンプロダクション';
+    else if (upper.includes('FUJI ROCK') || upper.includes('朝霧')) organizer = 'SMASH (スマッシュ)';
+    else if (upper.includes('RISING SUN')) organizer = 'WESS';
+    else if (upper.includes('VIVA LA ROCK')) organizer = 'FACT / DISK GARAGE';
+    else if (upper.includes('SWEET LOVE SHOWER')) organizer = 'スペースシャワーTV / DISK GARAGE';
+    else if (upper.includes('MONSTER BASH')) organizer = 'DUKE (デューク)';
+    else if (upper.includes('WILD BUNCH')) organizer = 'YUMEBANCHI (夢番地)';
+    else if (upper.includes('FM802') || upper.includes('RADIO CRAZY') || upper.includes('MINAMI WHEEL')) organizer = 'FM802';
+    else if (upper.includes('VARIT') || upper.includes('CIRCUS')) organizer = '神戸VARIT. / PINEFIELDS';
+    else if (upper.includes('TRUST')) organizer = 'TRUST RECORDS';
+    else if (upper.includes('POP YOURS')) organizer = 'POP YOURS 実行委員会 / SPACE SHOWER';
+    else if (upper.includes('THE HOPE')) organizer = 'THE HOPE 実行委員会 / avex';
+    else if (upper.includes('MELLOW CRUISE')) organizer = 'KOBE MELLOW CRUISE 実行委員会 / キョードー関西';
+    else if (upper.includes('HAZIKETEMAZARE')) organizer = 'HEY-SMITH / GREENS';
+    else if (upper.includes('京都大作戦')) organizer = '10-FEET / Sound Creator';
+    else if (upper.includes('YON FES')) organizer = '04 Limited Sazabys / サンデーフォーク';
+    else if (upper.includes('DEAD POP')) organizer = 'SiM / DISK GARAGE';
+    else organizer = getRegionalPromoter(city, venue);
 
-    // 主催者の特定
-    let organizer = existingMeta?.organizer;
-    if (!organizer || organizer.includes('フェス実行委員会')) {
-      const upper = (festName + ' ' + venue).toUpperCase();
-      if (upper.includes('ROCKIN') || upper.includes('JAPAN JAM') || upper.includes('CDJ')) organizer = 'ロッキング・オン・ジャパン';
-      else if (upper.includes('SUMMER SONIC') || upper.includes('SONICMANIA') || upper.includes('PUNKSPRING')) organizer = 'クリエイティブマンプロダクション';
-      else if (upper.includes('FUJI ROCK') || upper.includes('朝霧')) organizer = 'SMASH (スマッシュ)';
-      else if (upper.includes('RISING SUN')) organizer = 'WESS';
-      else if (upper.includes('VIVA LA ROCK')) organizer = 'FACT / DISK GARAGE';
-      else if (upper.includes('SWEET LOVE SHOWER')) organizer = 'スペースシャワーTV / DISK GARAGE';
-      else if (upper.includes('MONSTER BASH')) organizer = 'DUKE (デューク)';
-      else if (upper.includes('WILD BUNCH')) organizer = 'YUMEBANCHI (夢番地)';
-      else if (upper.includes('FM802') || upper.includes('RADIO CRAZY') || upper.includes('MINAMI WHEEL')) organizer = 'FM802';
-      else if (upper.includes('VARIT') || upper.includes('CIRCUS')) organizer = '神戸VARIT. / PINEFIELDS';
-      else if (upper.includes('TRUST')) organizer = 'TRUST RECORDS';
-      else if (upper.includes('POP YOURS')) organizer = 'POP YOURS 実行委員会 / SPACE SHOWER';
-      else if (upper.includes('THE HOPE')) organizer = 'THE HOPE 実行委員会 / avex';
-      else if (upper.includes('MELLOW CRUISE')) organizer = 'KOBE MELLOW CRUISE 実行委員会 / キョードー関西';
-      else if (upper.includes('HAZIKETEMAZARE')) organizer = 'HEY-SMITH / GREENS';
-      else if (upper.includes('京都大作戦')) organizer = '10-FEET / Sound Creator';
-      else if (upper.includes('YON FES')) organizer = '04 Limited Sazabys / サンデーフォーク';
-      else if (upper.includes('DEAD POP')) organizer = 'SiM / DISK GARAGE';
-      else organizer = getRegionalPromoter(city, venue);
+    // 2. 出演ラインナップ
+    let lineup = [];
+    if (festName.includes('/') || festName.includes('vs') || festName.includes('w/') || festName.includes('＆') || festName.includes('&')) {
+      lineup = festName.split(/[\/＆&]|vs|w\//i)
+        .map(s => s.trim())
+        .filter(s => s.length > 0 && !s.includes('2026') && !s.includes('FEST') && !s.includes('フェス'));
     }
-
-    // 出演ラインナップの決定
-    let lineup = existingMeta?.lineup || [];
-    if (!lineup || lineup.length === 0) {
-      if (festName.includes('/') || festName.includes('vs') || festName.includes('w/') || festName.includes('＆') || festName.includes('&')) {
-        lineup = festName.split(/[\/＆&]|vs|w\//i)
-          .map(s => s.trim())
-          .filter(s => s.length > 0 && !s.includes('2026') && !s.includes('FEST') && !s.includes('フェス'));
-      }
-      if (lineup.length === 0) {
-        // ジャンル別代表アーティストをセット
+    if (lineup.length === 0) {
+      if (upper.includes('BLARE')) lineup = ['coldrain', '04 Limited Sazabys', '10-FEET', 'HEY-SMITH', 'SiM', 'Crossfaith', 'ROTTENGRAFFTY', 'Crown The Empire'];
+      else {
         const presets = GENRE_ARTIST_PRESETS[genre] || GENRE_ARTIST_PRESETS.Rock;
         lineup = presets.slice(0, 8);
       }
     }
 
-    // 特徴・紹介文の生成
-    let description = existingMeta?.description;
-    if (!description || description.includes('注目の冬フェス！')) {
-      const vUpper = venue.toUpperCase();
-      let venueVibe = '特設野外ステージ';
-      if (vUpper.includes('メッセ') || vUpper.includes('アリーナ') || vUpper.includes('ドーム') || vUpper.includes('PIT') || vUpper.includes('ZEPP')) {
-        venueVibe = '全天候型インドアアリーナ';
-      } else if (vUpper.includes('公園') || vUpper.includes('広場') || vUpper.includes('ビーチ') || vUpper.includes('スキー') || vUpper.includes('山')) {
-        venueVibe = '開放感あふれる野外ステージ';
-      } else if (vUpper.includes('CLUB') || vUpper.includes('VARIT') || vUpper.includes('QUATTRO') || vUpper.includes('LIVE')) {
-        venueVibe = '熱気あふれるライブハウスサーキット';
+    // 3. 特徴・概要テキスト（「プロモーターが手掛ける」等の冗長テキストを完全排除）
+    let description = '';
+    for (const [key, desc] of Object.entries(SPECIFIC_DESCRIPTIONS)) {
+      if (normName.includes(key)) {
+        description = desc;
+        break;
       }
-
-      description = `${city}の${venue}（${venueVibe}）にて開催される注目の${seasonLabel}「${festName}」！\n主催・制作プロモーター「${organizer}」が届ける大人気音楽フェスティバルです。豪華ラインナップが魅せる最高のサウンドパフォーマンス、フード＆ドリンクブース、限定フェスグッズなど、会場全体で最高の音楽体験をお楽しみいただけます！`;
     }
 
-    // 特徴タグ
-    let features = existingMeta?.features;
-    if (!features || features.length === 0) {
-      features = [
-        `📍 ${city}開催`,
-        seasonLabel === '春フェス' ? '🌸 春フェス' : seasonLabel === '夏フェス' ? '☀️ 夏フェス' : seasonLabel === '秋フェス' ? '🍁 秋フェス' : '❄️ 冬フェス',
-        `🎸 ${genre}・ライブ`,
-        venue.includes('メッセ') || venue.includes('アリーナ') ? '🏟️ インドアアリーナ' : '⛺ 野外ステージ',
-        '🍻 飲食フードブース充実'
-      ];
+    if (!description) {
+      const vUpper = venue.toUpperCase();
+      if (vUpper.includes('ポートメッセ') || vUpper.includes('メッセ') || vUpper.includes('アリーナ') || vUpper.includes('ドーム') || vUpper.includes('PIT') || vUpper.includes('ZEPP')) {
+        description = `${city}・${venue}にて開催される熱気あふれる全天候型インドアアリーナフェスティバル「${festName}」！最先端のサウンド演出と重厚なステージ空間で、豪華アーティスト陣が魅せる圧巻のライブパフォーマンスと会場限定フード・オフィシャルグッズを心ゆくまでお楽しみいただけます。`;
+      } else if (vUpper.includes('公園') || vUpper.includes('広場') || vUpper.includes('ビーチ') || vUpper.includes('スキー') || vUpper.includes('山')) {
+        description = `${city}・${venue}にて開催される開放感あふれる野外音楽フェスティバル「${festName}」！爽やかな風と広大なロケーションの中で、熱いライブステージとフェス名物の絶品フードエリアを満喫できる音楽の祭典です。`;
+      } else {
+        description = `${city}・${venue}エリアにて開催される熱気あふれるサーキット型音楽フェスティバル「${festName}」！複数のステージ・ライブハウスをジャックし、タイムテーブルに合わせて自分だけのお気に入りアーティストや注目の新鋭バンドをハシゴして楽しめます。`;
+      }
     }
+
+    // 4. 特徴タグ
+    const features = [
+      `📍 ${city}開催`,
+      seasonLabel === '春フェス' ? '🌸 春フェス' : seasonLabel === '夏フェス' ? '☀️ 夏フェス' : seasonLabel === '秋フェス' ? '🍁 秋フェス' : '❄️ 冬フェス',
+      `🎸 ${genre}・ライブ`,
+      venue.includes('メッセ') || venue.includes('アリーナ') || venue.includes('ポートメッセ') ? '🏟️ インドアアリーナ' : '⛺ 野外ステージ',
+      '🍻 飲食フードブース充実'
+    ];
 
     const record = {
       organizer: organizer,
       description: description,
       lineup: lineup,
-      official_url: existingMeta?.official_url || `https://www.google.com/search?q=${encodeURIComponent(festName + ' 公式サイト')}`,
+      official_url: `https://www.google.com/search?q=${encodeURIComponent(festName + ' 公式サイト')}`,
       features: features
     };
 
     dict[festName] = record;
     dict[normName] = record;
-    enrichedCount++;
   }
 
   fs.writeFileSync(DICT_PATH, JSON.stringify(dict, null, 2), 'utf-8');
-  console.log(`🎉 Processed and enriched ALL ${allEvents.length} festivals in DB! Total dictionary entries: ${Object.keys(dict).length}`);
+  console.log(`🎉 Feature-focused Festival Metadata dictionary updated for ALL ${allEvents.length} festivals! Entries: ${Object.keys(dict).length}`);
 }
 
 main();
