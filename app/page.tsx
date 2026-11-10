@@ -743,6 +743,10 @@ export default function Home() {
                 
                 // 日付パース
                 const eventDateObj = new Date(`${event.event_date}T00:00:00`);
+                // 過去フェス判定（開催日が今日より前なら終了）
+                const todayObj = new Date();
+                todayObj.setHours(0, 0, 0, 0);
+                const isPastEvent = eventDateObj < todayObj;
                 const monthText = `${eventDateObj.getMonth() + 1}月`;
                 const dayText = `${eventDateObj.getDate()}`;
                 const weekdayText = ["日", "月", "火", "水", "木", "金", "土"][eventDateObj.getDay()];
@@ -761,6 +765,15 @@ export default function Home() {
                         className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                         aria-hidden
                       />
+
+                      {/* 過去フェスには DONE スタンプを被せる */}
+                      {isPastEvent && (
+                        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-red-950/10" aria-hidden>
+                          <span className="-rotate-12 rounded-2xl border-4 border-red-500/90 px-6 py-2 text-5xl font-black tracking-widest text-red-500/90 shadow-[0_0_40px_rgba(239,68,68,0.35)]">
+                            DONE‼️
+                          </span>
+                        </div>
+                      )}
 
                       {/* アクションボタン（行った ＆ 行きたい） */}
                       {user && (
