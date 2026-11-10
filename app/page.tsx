@@ -766,15 +766,32 @@ export default function Home() {
                         aria-hidden
                       />
 
-                      {/* 過去フェスには四角いハンコ風スタンプを押す（あつ森っぽく角丸・英字のみ） */}
+                      {/* 過去フェスには記念スタンプ風の DONE スタンプを押す（SVG・インクの揺らぎ表現入り） */}
                       {isPastEvent && (
                         <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" aria-hidden>
-                          <div className="flex h-36 w-36 -rotate-12 items-center justify-center rounded-[2rem] border-[6px] border-orange-600/85 opacity-95">
-                            <div className="flex h-[7.25rem] w-[7.25rem] flex-col items-center justify-center rounded-[1.6rem] border-[3px] border-orange-600/70 text-orange-600/90">
-                              <span className="text-4xl font-black tracking-wider leading-none">DONE</span>
-                              <span className="mt-1.5 text-lg font-black leading-none">‼️</span>
-                            </div>
-                          </div>
+                          <svg viewBox="0 0 200 200" className="h-40 w-40 -rotate-12 text-[#E14E1D] opacity-95" role="img" aria-label="DONE">
+                            <defs>
+                              <filter id="stamp-rough-b" x="-5%" y="-5%" width="110%" height="110%">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="4" seed="7" result="n" />
+                                <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" />
+                              </filter>
+                              <filter id="stamp-rough-t" x="-5%" y="-5%" width="110%" height="110%">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="9" result="n" />
+                                <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" />
+                              </filter>
+                            </defs>
+                            <g filter="url(#stamp-rough-b)" fill="none" stroke="currentColor">
+                              <rect x="6" y="6" width="188" height="188" rx="30" strokeWidth="7" />
+                              <rect x="20" y="20" width="160" height="160" rx="20" strokeWidth="2.2" />
+                              <line x1="40" y1="68" x2="160" y2="68" strokeWidth="2" />
+                              <line x1="40" y1="140" x2="160" y2="140" strokeWidth="2" />
+                            </g>
+                            <g filter="url(#stamp-rough-t)" fill="currentColor" textAnchor="middle">
+                              <text x="100" y="54" fontSize="14" fontWeight="700" letterSpacing="2.5">MUSIC JOURNEY</text>
+                              <text x="100" y="126" fontSize="50" fontWeight="900" letterSpacing="2">DONE</text>
+                              <text x="100" y="165" fontSize="11.5" fontWeight="700" letterSpacing="3.2">FESTIVAL ARCHIVE</text>
+                            </g>
+                          </svg>
                         </div>
                       )}
 
