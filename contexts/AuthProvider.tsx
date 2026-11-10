@@ -21,6 +21,8 @@ type AuthContextValue = {
   loading: boolean;
   profileLoading: boolean;
   events: TourEvent[];
+  eventsError: string | null;
+  retryEvents: () => Promise<void>;
   savedEventIds: string[];
   attendedEventIds: string[];
   attendedComments: Record<string, string>;
@@ -68,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [events, setEvents] = useState<TourEvent[]>([]);
+  const [eventsError, setEventsError] = useState<string | null>(null);
   const [savedEventIds, setSavedEventIds] = useState<string[]>([]);
   const [attendedEventIds, setAttendedEventIds] = useState<string[]>([]);
   const [attendedComments, setAttendedComments] = useState<Record<string, string>>({});
@@ -78,19 +81,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchAllEvents = useCallback(async () => {
-    const supabase = createSupabaseClient();
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .order("event_date", { ascending: true })
-      .range(0, 50000);
+    try {
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("event_date", { ascending: true })
+        .range(0, 50000);
 
-    if (error) {
-      console.error("Failed to fetch events from DB:", error.message);
+      if (error) {
+        // 取得失敗を「該当なし（0件）」と区別できるよう、エラーとして保持する
+        console.error("Failed to fetch events from DB:", error.message);
+        setEventsError(error.message);
+        return [];
+      }
+      setEventsError(null);
+      return data as TourEvent[];
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Unknown error";
+      console.error("Failed to fetch events from DB:", message);
+      setEventsError(message);
       return [];
     }
-    return data as TourEvent[];
   }, []);
+
+  const retryEvents = useCallback(async () => {
+    const data = await fetchAllEvents();
+    safeStartViewTransition(() => {
+      setEvents(data);
+    });
+  }, [fetchAllEvents]);
 
 
   const fetchSavedEvents = useCallback(async (userId: string) => {
@@ -540,6 +560,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       profileLoading,
       events,
+      eventsError,
+      retryEvents,
       savedEventIds,
       attendedEventIds,
       attendedComments,
@@ -563,6 +585,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       profileLoading,
       events,
+      eventsError,
+      retryEvents,
       savedEventIds,
       attendedEventIds,
       attendedComments,
