@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import Header from "@/components/Header";
+import EventsErrorBanner from "@/components/EventsErrorBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-black">
         <AuthProvider>
           <Header />
+          <EventsErrorBanner />
           <div className="flex-1">{children}</div>
         </AuthProvider>
       </body>

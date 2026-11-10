@@ -1,0 +1,21 @@
+name: Keep Supabase Awake
+
+# Supabase無料プランは無活動が続くとプロジェクトが一時停止（pause）する。
+# 3日ごとに本番の死活監視エンドポイントを叩いて活動を作り、寝落ちを防ぐ。
+# エンドポイントが 200 以外を返したらこのワークフローが失敗し、異常に気づける。
+on:
+  schedule:
+    - cron: "17 3 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          set -e
+          code=$(curl -s -o /tmp/health.json -w "%{http_code}" https://music-app-inky-eta.vercel.app/api/health)
+          echo "HTTP $code"
+          cat /tmp/health.json
+          test "$code" = "200"
