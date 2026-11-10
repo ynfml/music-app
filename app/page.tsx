@@ -766,12 +766,15 @@ export default function Home() {
                         aria-hidden
                       />
 
-                      {/* 過去フェスには DONE スタンプを被せる */}
+                      {/* 過去フェスには「済」ハンコ風スタンプを押す */}
                       {isPastEvent && (
-                        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-red-950/10" aria-hidden>
-                          <span className="-rotate-12 rounded-2xl border-4 border-red-500/90 px-6 py-2 text-5xl font-black tracking-widest text-red-500/90 shadow-[0_0_40px_rgba(239,68,68,0.35)]">
-                            DONE‼️
-                          </span>
+                        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" aria-hidden>
+                          <div className="flex h-36 w-36 -rotate-12 items-center justify-center rounded-full border-[5px] border-red-600/85 opacity-95">
+                            <div className="flex h-[7.5rem] w-[7.5rem] flex-col items-center justify-center rounded-full border-2 border-red-600/80 text-red-600/90">
+                              <span className="font-serif text-5xl font-black leading-none">済</span>
+                              <span className="mt-1 text-sm font-black tracking-[0.3em]">DONE‼️</span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
