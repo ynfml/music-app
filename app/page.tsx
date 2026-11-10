@@ -766,11 +766,11 @@ export default function Home() {
                         aria-hidden
                       />
 
-                      {/* 過去フェスにはハンコ風スタンプを押す（インバウンド向けに英字のみ） */}
+                      {/* 過去フェスには四角いハンコ風スタンプを押す（あつ森っぽく角丸・英字のみ） */}
                       {isPastEvent && (
                         <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" aria-hidden>
-                          <div className="flex h-36 w-36 -rotate-12 items-center justify-center rounded-full border-[5px] border-red-600/85 opacity-95">
-                            <div className="flex h-[7.5rem] w-[7.5rem] flex-col items-center justify-center rounded-full border-2 border-red-600/80 text-red-600/90">
+                          <div className="flex h-36 w-36 -rotate-12 items-center justify-center rounded-[2rem] border-[6px] border-orange-600/85 opacity-95">
+                            <div className="flex h-[7.25rem] w-[7.25rem] flex-col items-center justify-center rounded-[1.6rem] border-[3px] border-orange-600/70 text-orange-600/90">
                               <span className="text-4xl font-black tracking-wider leading-none">DONE</span>
                               <span className="mt-1.5 text-lg font-black leading-none">‼️</span>
                             </div>
