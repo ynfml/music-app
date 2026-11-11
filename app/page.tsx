@@ -145,6 +145,7 @@ export default function Home() {
   const [selectedRegion, setSelectedRegion] = useState<string>("All");
   const [selectedCity, setSelectedCity] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | "Upcoming" | "Done">("All");
   const [activeDialogEvent, setActiveDialogEvent] = useState<{ id: string; artist: string; isAttended: boolean } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -286,9 +287,34 @@ export default function Home() {
     );
   }, [events, selectedRegion]);
 
+  // 開催ステータスの件数（タブ表示用）
+  const statusCounts = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let upcoming = 0;
+    let done = 0;
+    for (const e of events) {
+      if (!e.is_festival) continue;
+      const d = new Date(`${e.event_date}T00:00:00`);
+      if (d < today) done++;
+      else upcoming++;
+    }
+    return { upcoming, done };
+  }, [events]);
+
   const displayEvents = useMemo(() => {
     // 💡 フロントエンドは国内音楽フェス（is_festival: true）に限定
     let filtered = events.filter((event) => event.is_festival);
+
+    // 0. 開催ステータスフィルター（これから／DONE）
+    if (statusFilter !== "All") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filtered = filtered.filter((event) => {
+        const d = new Date(`${event.event_date}T00:00:00`);
+        return statusFilter === "Done" ? d < today : d >= today;
+      });
+    }
 
     // 1. ジャンル・保存フィルター
     if (activeGenre === "Saved") {
@@ -334,7 +360,7 @@ export default function Home() {
     }
 
     return sortEventsForUser(filtered, profile?.favorite_genres, activeGenre as any);
-  }, [activeGenre, activeSeason, selectedRegion, selectedCity, profile?.favorite_genres, events, savedEventIds, searchQuery]);
+  }, [activeGenre, activeSeason, selectedRegion, selectedCity, profile?.favorite_genres, events, savedEventIds, searchQuery, statusFilter]);
 
   const isPersonalized =
     profile?.favorite_genres &&
@@ -472,6 +498,32 @@ export default function Home() {
 
         {/* 🌸 季節・ジャンルフィルターナビゲーション */}
         <div className="mb-8 space-y-4">
+          {/* 開催ステータスフィルタータブ */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {[
+              { id: "All", label: `すべて (${statusCounts.upcoming + statusCounts.done})`, icon: "🗓️" },
+              { id: "Upcoming", label: `これから (${statusCounts.upcoming})`, icon: "🎟️" },
+              { id: "Done", label: `DONE (${statusCounts.done})`, icon: "🏁" },
+            ].map((st) => {
+              const isActive = statusFilter === st.id;
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setStatusFilter(st.id as "All" | "Upcoming" | "Done")}
+                  className={`rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-gradient-to-r from-amber-500 to-primary-500 text-white shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/50"
+                      : "bg-zinc-900/80 text-zinc-400 ring-1 ring-zinc-800 hover:bg-zinc-800 hover:text-zinc-200"
+                  }`}
+                >
+                  <span>{st.icon}</span>
+                  <span>{st.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* 季節フィルタータブ */}
           <div className="flex flex-wrap items-center justify-center gap-2">
             {[
@@ -684,14 +736,16 @@ export default function Home() {
               )}
             </div>
 
-            {(searchQuery || selectedCity !== "All" || activeSeason !== "All" || activeGenre !== "All") && (
+            {(searchQuery || selectedCity !== "All" || activeSeason !== "All" || activeGenre !== "All" || statusFilter !== "All") && (
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
+                  setStatusFilter("All");
                   setSelectedCity("All");
                   setActiveSeason("All");
                   setActiveGenre("All");
+                  setStatusFilter("All");
                 }}
                 className="text-amber-400 hover:text-amber-300 font-semibold transition-colors flex items-center gap-1"
               >
@@ -726,9 +780,11 @@ export default function Home() {
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
+                  setStatusFilter("All");
                   setSelectedCity("All");
                   setActiveSeason("All");
                   setActiveGenre("All");
+                  setStatusFilter("All");
                 }}
                 className="rounded-full bg-zinc-900 px-6 py-3 text-xs font-semibold text-amber-400 ring-1 ring-zinc-800 hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-lg"
               >
