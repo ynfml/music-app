@@ -3,12 +3,14 @@ const fs = require('fs');
 const path = require('path');
 
 const envPath = path.join(process.cwd(), '.env.local');
+if (fs.existsSync(envPath)) {
 const envFile = fs.readFileSync(envPath, 'utf-8');
 envFile.split('\n').forEach(line => {
   if (!line.trim() || line.trim().startsWith('#')) return;
   const parts = line.split('=');
   if (parts.length >= 2) process.env[parts[0].trim()] = parts.slice(1).join('=').trim().replace(/^[\"']|[\"']$/g, '');
 });
+}
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const DICT_PATH = path.join(process.cwd(), 'lib/data/festival_details.json');

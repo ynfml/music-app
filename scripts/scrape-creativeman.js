@@ -150,12 +150,12 @@ async function runScraper() {
       }
 
       // 各公演テーブルをループ
-      $('table.event-table').each((_, tableEl) => {
+      for (const tableEl of $('table.event-table').toArray()) {
         // thの中の u-text-large スパンを取得
         // 例: "東京 2026/6/7(日) Zepp Haneda (TOKYO)"
         const headerText = $(tableEl).find('th span.u-text-large').text().trim() || $(tableEl).find('th').first().text().trim();
         
-        if (!headerText) return;
+        if (!headerText) continue;
 
         // 正規表現で「都市」「日付」「会場」に分割
         // パターン: "都市名 2026/6/7(曜日) 会場名"
@@ -168,7 +168,7 @@ async function runScraper() {
           const venue = match[3].trim().replace(/\s*SOLD OUT\s*$/, '').trim(); // SOLD OUTの文字があれば除去
 
           const formattedDate = formatToIsoDate(rawDate);
-          if (!formattedDate) return;
+          if (!formattedDate) continue;
 
           // 重複チェック
           const lookupKey = `${artistName.toLowerCase()}|${venue.toLowerCase()}|${formattedDate}`;
@@ -181,7 +181,7 @@ async function runScraper() {
               .then(({ error }) => {
                 if (error) console.error(`      ❌ Update title failed: ${error.message}`);
               });
-            return;
+            continue;
           }
 
           // インサート用のデータオブジェクトを作成
@@ -196,7 +196,7 @@ async function runScraper() {
           
           console.log(`   ✨ Found New Event: ${artistName} @ ${venue} (${formattedDate})`);
         }
-      });
+      }
 
       // 相手サーバーへ負荷をかけないために少しウェイトを入れる (500ms)
       await new Promise(resolve => setTimeout(resolve, 500));
