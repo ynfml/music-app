@@ -10,6 +10,7 @@ const files = fs.readdirSync(scriptsDir);
 const scrapeScripts = files.filter(f => f.startsWith('scrape-') && f.endsWith('.js'));
 
 console.log(`Found ${scrapeScripts.length} scraper scripts. Starting execution...`);
+let failedCount = 0;
 
 for (const script of scrapeScripts) {
   console.log(`\n======================================================`);
@@ -20,10 +21,15 @@ for (const script of scrapeScripts) {
     // スクリプトを同期的に実行し、ログをそのまま出力
     execSync(`node ${path.join(scriptsDir, script)}`, { stdio: 'inherit' });
   } catch (error) {
+    failedCount++;
     console.error(`❌ Error executing ${script}:`, error.message);
     console.log(`⚠️ Continue to next script...`);
     // エラーが起きても次のスクリプトの実行を続ける
   }
 }
 
-console.log(`\n🎉 All scraper scripts finished!`);
+console.log(`\n🎉 All scraper scripts finished! (${scrapeScripts.length - failedCount} succeeded, ${failedCount} failed)`);
+if (failedCount === scrapeScripts.length) {
+  console.error('❌ All scrapers failed. Marking this run as failed.');
+  process.exit(1);
+}

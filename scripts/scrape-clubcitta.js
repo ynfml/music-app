@@ -31,16 +31,16 @@ async function scrapeClubCitta() {
 
   const events = [];
 
-  $('.schedule_list .item').each((i, el) => {
+  for (const el of $('.schedule_list .item').toArray()) {
     // 日付 (e.g., "7<span>Tue</span>" -> "7")
     const dateText = $(el).find('.item_detail p').text().trim();
     const dayMatch = dateText.match(/^(\d+)/);
-    if (!dayMatch) return; // 日付がないものはスキップ(PRIVATEなど)
+    if (!dayMatch) continue; // 日付がないものはスキップ(PRIVATEなど)
     const day = parseInt(dayMatch[1], 10);
     
     // タイトルと詳細
     const title = $(el).find('.txt_wrap h3').text().trim();
-    if (title === 'PRIVATE') return; // 貸切
+    if (title === 'PRIVATE') continue; // 貸切
 
     // 詳細テキストから出演者や時間を拾う
     // <p>タグの中に OPEN / START や【出演】などが書かれている
@@ -77,7 +77,7 @@ async function scrapeClubCitta() {
       genre: genre,
       is_festival: genre === 'Festival' || title.toLowerCase().includes('fes') || title.includes('フェス'),
     });
-  });
+  }
 
   console.log(`Found ${events.length} events for ${year}-${month} at ${venueName}.`);
 
